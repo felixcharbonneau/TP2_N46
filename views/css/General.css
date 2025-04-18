@@ -38,7 +38,7 @@ h2 {
     padding-top: 30px;
     margin-bottom: 20px;
 }
-form {
+form,.form {
     display: grid;
     margin-top: 40px;
     grid-template-columns: 1fr 2fr; 
@@ -283,14 +283,14 @@ button.ajout{
     background-color: #0BC240;
     border-color: #17FF00;
 }
-form div , .modal div{
+form div , .modal div, .form div{
     width: 300px;
     margin-top: 20px;
 }
 .modal form div input[type="text"], textarea,select,input[type="date"], input[type="file"]{
     margin-top: 20px;
 }
-.modal form{
+.modal form, .modal .form{
     height: 600px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -300,7 +300,7 @@ form div , .modal div{
     align-items: start;
     margin-top: 20px;
 }
-.modal form button[type="submit"]{
+.modal form button[type="submit"], .modal .form button[type="submit"]{
     grid-row: span 2;
     position: absolute;
     bottom: 60px;
@@ -502,14 +502,14 @@ li,p, details h5{
 #enseignantProfil input{
     margin-top: 0px;
 }
-form h2{
+form h2, .form h2{
     text-align: right;
     font-weight: bold;
     font-size: 16px;
     padding: 0px;
     margin: 0px;
 }
-form h3{
+form h3, .form h3{
     text-align: left;
     font-size: 16px;
 
@@ -539,6 +539,18 @@ body.connexion{
 #addStudentModal div{
     width: 500px;
     height: 300px;
+}
+div.form{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    justify-items: center;
+    align-items: start;
+    margin-top: 20px;
+    width: 100%;
+}
+div.form input[type="text"], textarea,select,input[type="date"], input[type="file"]{
+    margin-top: 20px;
 }
 li{
     display: flex;

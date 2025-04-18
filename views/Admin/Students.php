@@ -1,10 +1,14 @@
 <?php
     include VIEWS_PATH . 'Navbar/AdminNavbar.php';
 ?>
+<!-- Page pour afficher la gestion des étudiants pour l'admin -->
 <html>
     <head>
         <link rel="stylesheet" href="/Views/General.css">
         <script>
+            /**
+             * Fonction pour afficher les étudiants dans la table
+             */
             function showUsers(data) {
                 const tableBody = document.getElementById('Student-Data');
                         tableBody.innerHTML = '';
@@ -39,6 +43,7 @@
                         const tableBody = document.getElementById('Student-Data');
                         tableBody.innerHTML = `<tr><td colspan="4">Une erreur est survenue lors du chargement des données. Veuillez réessayer plus tard.</td></tr>`;
                     });
+                document.getElementById('user_input').value = '';
             }
             /**
              * Fonction pour ouvrir le modal d'édition d'un étudiant
@@ -62,7 +67,7 @@
                 const modal = document.querySelector('#editEtudiantModalOverlay');
                 modal.style.display = 'block';
                 
-                document.getElementById('closeEditEtudiantModal').addEventListener('click', () => {
+                document.getElementById('closeEditStudentModal').addEventListener('click', () => {
                     modal.style.display = 'none';
                 });
 
@@ -71,6 +76,10 @@
                         modal.style.display = 'none';
                     }
                 });
+            }
+            function closeEditStudentModal() {
+                const modal = document.querySelector('#editEtudiantModalOverlay');
+                modal.style.display = 'none';
             }
             /**
              * Fonction pour la suppression d'un étudiant
@@ -91,17 +100,37 @@
                 .catch(error => alert(error.message));
             }
             /**
-             * Fonction pour mettretre à jour un étudiant
+             * Fonction pour mettre à jour un étudiant
              * @param {number} id - L'ID de l'étudiant à mettre à jour
              */
             function updateStudent() {
+                const id = document.getElementById('editEtudiantId').value;
+                const nom = document.getElementById('editNom').value;
+                const prenom = document.getElementById('editPrenom').value;
+                const dateNaissance = document.getElementById('editDateNaissance').value;
+                const password = document.querySelector('#editEtudiantModalOverlay input[name="password"]').value;
+
+                const data = {
+                    nom,
+                    prenom,
+                    dateNaissance,
+                    password
+                };
                 fetch(`/api/students/${id}`, {
                     method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
                 })
                 .then(response => {
                     if (response.status === 204) {
                         loadStudents();
-                        closeEditModal();
+                        closeEditStudentModal();
+                        document.getElementById('editNom').value = '';
+                        document.getElementById('editPrenom').value = '';
+                        document.getElementById('editDateNaissance').value = '';
+                        document.querySelector('#editEtudiantModalOverlay input[name="password"]').value = '';
                     } else {
                         throw new Error('Erreur lors de la mise à jour de l\'étudiant');
                     }
@@ -121,13 +150,10 @@
                     dateNaissance: form.dateNaissance.value,
                 }; 
             
-                // Check if all fields are filled
                 if (!data.nom || !data.prenom || !data.dateNaissance) {
                     alert("Veuillez remplir tous les champs.");
                     return;
                 }
-            
-                // Send data to the backend via fetch
                 fetch('/api/students', {
                     method: 'POST',
                     headers: {
@@ -152,7 +178,9 @@
                 modal.style.display = 'none';
             }
             loadStudents();
-
+            /**
+             * Fonction pour rechercher des étudiants
+             */
             function rechercher() {
                 var query = document.getElementById('user_input').value;
                 if (!query) {
@@ -177,15 +205,16 @@
             }
         </script>
     </head>
+
     <body>
         <h1 class="titre">Étudiants</h1>
-
         <!-- Options de recherche et d'ajout -->
         <div class="options">
             <div class="recherche" id="searchForm">
                 <input type="text" id="user_input" name="query" required>
                 <input onclick="rechercher()" class="recherche" type="submit" value="Recherche">
             </div>
+            <!-- modal pour ajouter un étudiant -->
             <button class="open-modal ajout">&#x2b;</button>
             <div class="modal-overlay" id="modalOverlay">
             <div class="modal">
@@ -226,10 +255,11 @@
             </tbody>
         </table>
         <div class="modal-overlay" id="editEtudiantModalOverlay">
+            <!-- Modal pour modifier un étudiant -->
             <div class="modal">
-                <button class="close-button" id="closeEditEtudiantModal">X</button>
+                <button class="close-button" id="closeEditStudentModal">X</button>
                 <h2>Modifier l'étudiant</h2>
-                <form method="PUT" action="/api/students">
+                <div class="form">
                 <input type="hidden" name="id" id="editEtudiantId" value="">
                 <div>
                         <label for="editNom">Nom:</label>
@@ -247,8 +277,8 @@
                         <label for="editpassword">Mot de passe:</label>
                         <input type="text" name="password">
                     </div>
-                    <button type="submit" class="submit-button" style="margin-top: 15px;">Mettre à jour l'étudiant</button>
-                </form>
+                    <button onclick="updateStudent()" class="submit-button" style="margin-top: 15px;">Mettre à jour l'étudiant</button>
+                </div>
             </div>
         </div>
         <!-- pagination -->

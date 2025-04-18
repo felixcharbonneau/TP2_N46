@@ -76,5 +76,27 @@ class StudentsApi {
         header('HTTP/1.1 500 Internal Server Error');
         return json_encode(['error' => 'Erreur lors de la suppression de l\'utilisateur']);
     }
+    public function updateStudent($id) {
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (!isset($data['nom']) || !isset($data['prenom']) || !isset($data['dateNaissance'])
+            || empty($data['nom']) || empty($data['dateNaissance']) || empty($data['prenom'])) {
+            header('HTTP/1.1 400 Bad Request');
+            return json_encode(['error' => 'Données manquantes']);
+        }
+        if (strlen($data['nom']) > 50 || strlen($data['prenom']) > 50 ){
+            header('HTTP/1.1 400 Bad Request');
+            return json_encode(['error' => 'Le nom ou prénom ne doit pas dépasser 50 caractères']);
+        }
+
+        $student = Student::update($id, $data);
+        if (!$student) {
+            header('HTTP/1.1 404 Not Found');
+            return json_encode(['error' => 'Erreur lors de la mise à jour de l\'étudiant']);
+        }else{
+            header('HTTP/1.1 204 No Content');
+            return '';
+        }
+    }
 
 }

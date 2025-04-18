@@ -49,6 +49,21 @@ if (strpos($url, 'api/') === 0) {
         } elseif ($method === 'delete' && $id) {
             echo $apiController->deleteStudent($id);
         }
+    }elseif ($resource === 'departments') {
+        $apiController = new \controllers\DepartmentsApi();
+        if ($method === 'get') {
+            if ($id) {
+                echo $apiController->getDepartment($id);
+            } else {
+                echo $apiController->getDepartments();
+            }
+        } elseif ($method === 'post') {
+            echo $apiController->createDepartment();
+        } elseif ($method === 'put' && $id) {
+            echo $apiController->updateDepartment($id);
+        } elseif ($method === 'delete' && $id) {
+            echo $apiController->deleteDepartment($id);
+        }
     } else {
         header('HTTP/1.1 404 Not Found');
         echo json_encode(['error' => 'Ressource non trouvée']);

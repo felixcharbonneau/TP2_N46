@@ -7,10 +7,10 @@
 <nav>
     <div id="options">
         <a class="link" href="/Home">Accueil</a>
-        <a class="link" href="/Groups">Groupes</a>
+        <a class="link" href="/Classes">Groupes</a>
         <a class="link" href="/Teachers">Enseignants</a>
         <a class="link" href="/Students">Etudiants</a>
-        <a class="link" href="/Classes">Cours</a>
+        <a class="link" href="/Courses">Cours</a>
         <a class="link departement" href="/Departments">Départements</a>
     </div>
 

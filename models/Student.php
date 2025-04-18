@@ -161,7 +161,36 @@ class Student extends User {
             date('Y-m-d H:i:s')
         );
     }
+    /**
+     * Met à jour les informations d'un étudiant
+     * @param int $id L'ID de l'étudiant à mettre à jour
+     * @param array $data Les données à mettre à jour (nom, prenom, dateNaissance, password)
+     * @return bool true si la mise à jour a réussi, false sinon
+     */
+    public static function update($id,$data) {
+        $sql = '
+        UPDATE Etudiant
+        SET nom = :nom,
+            prenom = :prenom,
+            dateNaissance = :dateNaissance,
+            modifiedBy = :modifiedBy';
+        if (!empty($data['password'])) {
+            $sql .= ', password = :password';
+        }
+        $sql .= ' WHERE id = :id';
 
+        $stmt = DatabaseConnexion::getInstance()->prepare($sql);
+        $stmt->bindValue(':nom', $data['nom']);
+        $stmt->bindValue(':prenom', $data['prenom']);
+        $stmt->bindValue(':dateNaissance', $data['dateNaissance']);
+        $stmt->bindValue(':modifiedBy', "system"); ///a modifier
+        $stmt->bindValue(':id', $id, \PDO::PARAM_INT);
+        if (!empty($data['password'])) {
+            $stmt->bindValue(':password', password_hash($data['password'], PASSWORD_DEFAULT)); 
+        }
+
+        return $stmt->execute();
+    }
     /**
      * génere un nombre entre 1000000 et 9999999
      */

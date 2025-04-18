@@ -12,8 +12,6 @@
               document.getElementById("min").innerHTML = meteoJoliette.daily.temperature_2m_min[0] + "°C";
           })
           .catch(error => { console.log(error); });
-          
-
     </script>
     <head>
     <link rel="stylesheet" href="/Views/General.css">
