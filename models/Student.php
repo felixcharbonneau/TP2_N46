@@ -49,7 +49,11 @@ class Student extends User {
         }
         return false;
     }
-
+    /**
+     * Vérifie les informations de connexion de l'étudiant
+     * @param string $password Le mot de passe de l'étudiant
+     * @return bool true si les informations de connexion sont valides, sinon false
+     */
     public function connexion($password) {
         $stmt = DatabaseConnexion::getInstance()->prepare('SELECT password FROM Etudiant WHERE email = :email');
         $stmt->bindValue(':email', $this->email);
@@ -64,15 +68,20 @@ class Student extends User {
      * Récupere tous les étudiants
      * @return array un tableau d'objets Student
      */
-    public static function getAll($searchValue = '') {
+    public static function getAll($page, $searchValue = '') {
         $students = array();
+        $ValuePerPage = 25;
+        $pageStart = ($page - 1) * 25;
+        
         if(!$searchValue){
-            $query = DatabaseConnexion::getInstance()->query('SELECT id, nom, prenom, email, dateNaissance, createdBy, modifiedBy, da, dateInscription FROM Etudiant');
+            $query = DatabaseConnexion::getInstance()->prepare('SELECT id, nom, prenom, email, dateNaissance, createdBy, modifiedBy, da, dateInscription FROM Etudiant LIMIT :pageStart, :ValuePerPage');
         }else{
-            $query = DatabaseConnexion::getInstance()->prepare('SELECT id, nom, prenom, email, dateNaissance, createdBy, modifiedBy, da, dateInscription FROM Etudiant WHERE nom LIKE :searchValue OR prenom LIKE :searchValue OR da LIKE :searchValue OR email LIKE :searchValue');
+            $query = DatabaseConnexion::getInstance()->prepare('SELECT id, nom, prenom, email, dateNaissance, createdBy, modifiedBy, da, dateInscription FROM Etudiant WHERE nom LIKE :searchValue OR prenom LIKE :searchValue OR da LIKE :searchValue OR email LIKE :searchValue LIMIT :pageStart, :ValuePerPage');
             $query->bindValue(':searchValue', '%' . $searchValue . '%', \PDO::PARAM_STR);
-            $query->execute();
         }
+        $query->bindValue(':pageStart', $pageStart, \PDO::PARAM_INT);
+        $query->bindValue(':ValuePerPage', $ValuePerPage, \PDO::PARAM_INT);
+        $query->execute();
         if ($query && $query->rowCount() > 0) {
             while ($row = $query->fetch(\PDO::FETCH_ASSOC)) {
                 $students[] = new Student(
@@ -91,6 +100,12 @@ class Student extends User {
     
         return $students;
     }
+    /**
+     * Récupère un étudiant par son ID
+     * @param int $id L'ID de l'étudiant
+     * @return Student|false L'objet Student ou false si l'étudiant n'existe pas
+     * @throws \Exception Si une erreur se produit lors de la récupération de l'étudiant
+     */
     public static function get($id){
         $stmt = DatabaseConnexion::getInstance()->prepare('SELECT id, nom, prenom, email, dateNaissance, createdBy, modifiedBy, da, dateInscription FROM Etudiant WHERE id = :id');
         $stmt->bindValue(':id', $id, \PDO::PARAM_INT);
@@ -111,12 +126,22 @@ class Student extends User {
             $data['dateInscription']
         );
     }
+    /**
+     * Supprime un étudiant par son ID
+     * @param int $id L'ID de l'étudiant à supprimer
+     * @return bool true si la suppression a réussi, false sinon
+     */
     public static function delete($id) {
         $stmt = DatabaseConnexion::getInstance()->prepare('DELETE FROM Etudiant WHERE id = :id');
         $stmt->bindValue(':id', $id, \PDO::PARAM_INT);
         return $stmt->execute();
     }
-
+    /**
+     * Crée un nouvel étudiant
+     * @param array $data Les données de l'étudiant (nom, prenom, dateNaissance)
+     * @return Student|false L'objet Student créé ou false en cas d'erreur
+     * @throws \Exception Si une erreur se produit lors de la création de l'étudiant
+     */
     public static function create($data){
         $da = self::generateUniqueDa(DatabaseConnexion::getInstance());
         $email = $da . "@etu.cegep-lanaudiere.qc.ca";

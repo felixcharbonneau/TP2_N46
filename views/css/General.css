@@ -274,7 +274,6 @@ button.ajout{
     position: relative;
 }
 .options button{
-    margin-top: 29px;
     border-radius: 9px;
     background-color: #17FF00;
     border-color: #0BC240;
@@ -579,9 +578,39 @@ li{
     position: absolute;
     bottom: 50px;
 }
-button.reset{
+.options button.reset{
     height: 40px;
     width: 300px;
     color: black;
-    margin-top:35px
+    margin:none
+}
+.options form:first-child, div.options form.searchForm{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+.open-modal.ajout{
+    margin-top: 20px;
+}
+.page-range{
+    margin: 0 15px;
+    font-size: 24px;
+    font-weight: bold;
+    position: absolute;
+    bottom: 100px;
+    color: #333;
+}
+.next-button, .prev-button{
+    width: 150px;
+    margin: 10px;
+}
+.pagination-nav{
+    position:relative;
+    margin-top: 100px;
+}
+modal{
+    text-align: center;
 }

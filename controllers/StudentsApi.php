@@ -15,12 +15,13 @@ class StudentsApi {
      * Récupère tous les étudiants
      * @return string JSON contenant la liste des étudiants
      */
-    public function getStudents() {
+    public function getStudents($page = 1) {
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $query = isset($_GET['query']) ? $_GET['query'] : '';
         if($query){
-            $students = Student::getAll($query);
+            $students = Student::getAll($page, $query);
         }else{
-            $students = Student::getAll();
+            $students = Student::getAll($page);
         }
         return json_encode($students);
     }

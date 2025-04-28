@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 define('ROOT_PATH', dirname(__DIR__) . '/');
 define('APP_PATH', ROOT_PATH . 'app/');
 define('CONFIG_PATH', ROOT_PATH . 'config/');
@@ -34,40 +36,39 @@ if (strpos($url, 'api/') === 0) {
 
     $apiController = new \controllers\StudentsApi();
     $method = strtolower($_SERVER['REQUEST_METHOD']);
-    
-    if ($resource === 'students') {
-        if ($method === 'get') {
-            if ($id) {
-                echo $apiController->getStudent($id);
-            } else {
-                echo $apiController->getStudents();
+        if ($resource === 'students') {
+            if ($method === 'get') {
+                if ($id) {
+                    echo $apiController->getStudent($id);
+                } else {
+                    echo $apiController->getStudents();
+                }
+            } elseif ($method === 'post') {
+                echo $apiController->createStudent();
+            } elseif ($method === 'put' && $id) {
+                echo $apiController->updateStudent($id);
+            } elseif ($method === 'delete' && $id) {
+                echo $apiController->deleteStudent($id);
             }
-        } elseif ($method === 'post') {
-            echo $apiController->createStudent();
-        } elseif ($method === 'put' && $id) {
-            echo $apiController->updateStudent($id);
-        } elseif ($method === 'delete' && $id) {
-            echo $apiController->deleteStudent($id);
-        }
-    }elseif ($resource === 'departments') {
-        $apiController = new \controllers\DepartmentsApi();
-        if ($method === 'get') {
-            if ($id) {
-                echo $apiController->getDepartment($id);
-            } else {
-                echo $apiController->getDepartments();
+        }elseif ($resource === 'departments') {
+            $apiController = new \controllers\DepartmentsApi();
+            if ($method === 'get') {
+                if ($id) {
+                    echo $apiController->getDepartment($id);
+                } else {
+                    echo $apiController->getDepartments();
+                }
+            } elseif ($method === 'post') {
+                echo $apiController->createDepartment();
+            } elseif ($method === 'put' && $id) {
+                echo $apiController->updateDepartment($id);
+            } elseif ($method === 'delete' && $id) {
+                echo $apiController->deleteDepartment($id);
             }
-        } elseif ($method === 'post') {
-            echo $apiController->createDepartment();
-        } elseif ($method === 'put' && $id) {
-            echo $apiController->updateDepartment($id);
-        } elseif ($method === 'delete' && $id) {
-            echo $apiController->deleteDepartment($id);
+        } else {
+            header('HTTP/1.1 404 Not Found');
+            echo json_encode(['error' => 'Ressource non trouvée']);
         }
-    } else {
-        header('HTTP/1.1 404 Not Found');
-        echo json_encode(['error' => 'Ressource non trouvée']);
-    }
 }else{
     // Route Web standard
     $controller = 'connexion';

@@ -1,3 +1,9 @@
+<?php
+    namespace views;
+    $errorMessage = isset($_GET['error']) ? "Courriel ou mot de passe incorrect" : null;
+?>
+
+
 <!-- page de connexion -->
 <!DOCTYPE html>
 <html>
@@ -9,8 +15,7 @@
     <div class=".connexionContainer">
         <div id="connexion">
             <h1>Connexion</h1>
-            <form style="gap:20px;position:relative" action="../Controllers/Controller.php" method="POST">
-            <input type="hidden" name="action" value="authenticate">
+            <form style="gap:20px;position:relative" action="/Authentification/login" method="POST">
                 <div class="role" style="display:absolute;grid-column:span 2;margin:auto">
                     <input type="radio" name="role" value="Admin" id="admin">
                     <label for="admin">Admin</label>

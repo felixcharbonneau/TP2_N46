@@ -1,6 +1,9 @@
 <?php
 namespace controllers;
 
+/**
+ * Controlleur pour l'affichage de la page d'accueil
+ */
 class HomeController {
     public function __construct() {
 

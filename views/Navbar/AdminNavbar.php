@@ -17,10 +17,9 @@
     <img id="icon" src="/views/Images/utilisateur.svg">
     <div id="slidingDiv" class="hidden">
         <h5>Connexion:</h5>
-        <h6>Bonjour:</h6>
-        <h6>Vous êtes un:</h6>
-        <form action="/Controllers/Controller.php" method="GET">
-            <input type="hidden" name="action" value="disconnect">
+        <h6>Bonjour: <?php echo $_SESSION['user_email'] ?></h6>
+        <h6>Vous êtes un: <?php echo $_SESSION['user_role'] ?></h6>
+        <form action="/Authentification/disconnect" method="GET">
             <button class="disconnect" type="submit">
                 <img height="50px" src="/views/Images/disconnect.png"></img>
             </button>

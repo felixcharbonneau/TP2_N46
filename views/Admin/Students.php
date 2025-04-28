@@ -1,4 +1,5 @@
 <?php
+    namespace views\Admin;
     include VIEWS_PATH . 'Navbar/AdminNavbar.php';
 ?>
 <!-- Page pour afficher la gestion des étudiants pour l'admin -->
@@ -11,29 +12,62 @@
              */
             function showUsers(data) {
                 const tableBody = document.getElementById('Student-Data');
-                        tableBody.innerHTML = '';
-                        data.forEach(student => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${student.da}</td>
-                                <td>${student.nom} ${student.prenom}</td>
-                                <td>${student.email}</td>
-                                <td>
-                                    <button class="open-modal edit image-button" onclick="openEditModal(${student.id}, '${student.nom}', '${student.prenom}', '${student.dateNaissance}')">
-                                        <img src="/Views/Images/pen.webp">
-                                    </button>
-                                    <button type=\"submit\" class=\"image-button\" onclick=\"deleteStudent(${student.id})\">
-                                        <img src=\"/Views/Images/trash.webp\" alt=\"Icon\">
-                                    </button>
-                                </td>`;
-                            tableBody.appendChild(row);
-                        });
+                tableBody.innerHTML = '';
+                if (data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="4">Aucunes données disponibles</td></tr>`;
+                    return;
+                }
+                data.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${student.da}</td>
+                        <td>${student.nom} ${student.prenom}</td>
+                        <td>${student.email}</td>
+                        <td>
+                            <button class="open-modal edit image-button" onclick="openEditModal(${student.id}, '${student.nom}', '${student.prenom}', '${student.dateNaissance}')">
+                                <img src="/Views/Images/pen.webp">
+                            </button>
+                            <button type=\"submit\" class=\"image-button\" onclick=\"deleteStudent(${student.id})\">
+                                <img src=\"/Views/Images/trash.webp\" alt=\"Icon\">
+                            </button>
+                        </td>`;
+                    tableBody.appendChild(row);
+                });
             }
             /**
              * Fonction pour charger les étudiants depuis l'API et les afficher dans la table
              */
             function loadStudents(){
-                fetch('/api/students')
+                <?php if (isset($_GET['page'])): ?>
+                    const page = "<?php echo htmlspecialchars($_GET['page']); ?>";
+                <?php else: ?>
+                    const form = document.createElement('form');
+                    form.method = 'GET';
+                    form.action = '/students';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'page';
+                    input.value = 1;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
+                <?php endif; ?>
+                <?php if (isset($_GET['query'])): ?>
+                    const query = "<?php echo htmlspecialchars($_GET['query']); ?>";
+                    fetch(`/api/students?query=${encodeURIComponent(query)}&page=${page}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            showUsers(data);
+                        })
+                        .catch(error => {
+                            console.error('Erreur:', error);
+                            const tableBody = document.getElementById('Student-Data');
+                            tableBody.innerHTML = `<tr><td colspan="4">Une erreur est survenue lors du chargement des données. Veuillez réessayer plus tard.</td></tr>`;
+                        });
+                <?php else: ?>
+                fetch(`/api/students?page=${page}`)
                     .then(response => response.json())
                     .then(data => {
                         showUsers(data);
@@ -43,6 +77,7 @@
                         const tableBody = document.getElementById('Student-Data');
                         tableBody.innerHTML = `<tr><td colspan="4">Une erreur est survenue lors du chargement des données. Veuillez réessayer plus tard.</td></tr>`;
                     });
+                <?php endif; ?>
                 document.getElementById('user_input').value = '';
             }
             /**
@@ -132,9 +167,8 @@
                         document.getElementById('editDateNaissance').value = '';
                         document.querySelector('#editEtudiantModalOverlay input[name="password"]').value = '';
                     } else {
-                        throw new Error('Erreur lors de la mise à jour de l\'étudiant');
+                        alert(response.json());
                     }
-
                     loadStudents();
                 })
                 .catch(error => alert(error.message));
@@ -177,43 +211,19 @@
                 const modal = document.querySelector('#modalOverlay');
                 modal.style.display = 'none';
             }
-            loadStudents();
-            /**
-             * Fonction pour rechercher des étudiants
-             */
-            function rechercher() {
-                var query = document.getElementById('user_input').value;
-                if (!query) {
-                    alert('Veuillez entrer un terme de recherche.');
-                    return;
-                }
             
-                fetch(`/api/students?query=${encodeURIComponent(query)}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    showUsers(data); 
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Erreur lors de la recherche.');
-                });
-            }
+            loadStudents();
         </script>
     </head>
-
     <body>
         <h1 class="titre">Étudiants</h1>
         <!-- Options de recherche et d'ajout -->
         <div class="options">
-            <div class="recherche" id="searchForm">
-                <input type="text" id="user_input" name="query" required>
-                <input onclick="rechercher()" class="recherche" type="submit" value="Recherche">
-            </div>
+            <form class="recherche" id="searchForm" method="GET" action="/students">
+                <input type="hidden" name="page" value="1">
+                <input type="text" id="user_input" name="query" required  value="<?php echo isset($_GET['query']) ? $_GET['query'] : ''; ?>">
+                <input class="recherche" type="submit" value="Recherche">
+            </form>
             <!-- modal pour ajouter un étudiant -->
             <button class="open-modal ajout">&#x2b;</button>
             <div class="modal-overlay" id="modalOverlay">
@@ -237,7 +247,9 @@
                 </form>
             </div>
             </div>
-            <button onclick="loadStudents()" class="reset">Supprimer la recherche</button>
+            <form class="searchForm" method="GET" action="/students" style="width:200px;margin:none">
+                <button type="submit" class="reset">Supprimer la recherche</button>
+            </form>
         </div>
         
         <!-- Affichage des données -->
@@ -251,7 +263,6 @@
                 </tr>
             </thead>
             <tbody id="Student-Data">
-
             </tbody>
         </table>
         <div class="modal-overlay" id="editEtudiantModalOverlay">
@@ -283,15 +294,21 @@
         </div>
         <!-- pagination -->
         <div class="pagination-nav">
-            <form method="POST" action="../Controllers/Controller.php" style="display:inline;">
-                <input type="hidden" name="action" value="changementPage">
-                <input type="hidden" name="type" value="Etudiants">
+            <form method="GET" action="students" style="display:inline;">
+            <?php if (isset($_GET['query']) && !empty($_GET['query'])): ?>
+                    <input type="hidden" name="query" value="<?php echo htmlspecialchars($_GET['query']); ?>">
+                <?php endif; ?>
+                <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']-1)?>">
                 <button class="prev-button" type="submit">Précédent</button>
             </form>
             <div class="page-range">
-                Page
+                Page <?php echo htmlspecialchars($_GET['page']); ?>
             </div>
-            <form method="POST" action="../Controllers/Controller.php" style="display:inline;">
+            <form method="GET" action="students" style="display:inline;">
+                <?php if (isset($_GET['query']) && !empty($_GET['query'])): ?>
+                    <input type="hidden" name="query" value="<?php echo htmlspecialchars($_GET['query']); ?>">
+                <?php endif; ?>
+                <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']+1)?>">
                 <button class="next-button" type="submit">Suivant</button>
             </form>
         </div>

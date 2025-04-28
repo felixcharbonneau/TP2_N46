@@ -54,14 +54,20 @@ class Department{
      * @param string $query la requête de recherche
      * @return array|false un tableau de départements ou false si non trouvé
      */
-    public static function getAll($query = '') {
+    public static function getAll($page, $searchValue = '') {
         $departments = array();
-        if(!$query){
-            $stmt = DatabaseConnexion::getInstance()->query('SELECT id, nom, code, description, createdBy, modifiedBy FROM Departement');
+        $ValuePerPage = 25;
+        $pageStart = ($page - 1) * 25;
+
+        if(!$searchValue){
+            $stmt = DatabaseConnexion::getInstance()->prepare('SELECT id, nom, code, description, createdBy, modifiedBy FROM Departement LIMIT :pageStart, :ValuePerPage');
         }else{
-            $stmt = DatabaseConnexion::getInstance()->prepare('SELECT id, nom, code, description, createdBy, modifiedBy FROM Departement WHERE nom LIKE :query OR code LIKE :query');
-            $stmt->execute(['query' => '%'.$query.'%']);
+            $stmt = DatabaseConnexion::getInstance()->prepare('SELECT id, nom, code, description, createdBy, modifiedBy FROM Departement WHERE nom LIKE :query OR code LIKE :query LiMIT :pageStart, :ValuePerPage');
+            $stmt->bindValue(':query', '%' . $searchValue . '%', \PDO::PARAM_STR);
         }
+        $stmt->bindValue(':pageStart', $pageStart, \PDO::PARAM_INT);
+        $stmt->bindValue(':ValuePerPage', $ValuePerPage, \PDO::PARAM_INT);
+        $stmt->execute();
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             $departments[] = new Department(
                 $row['id'],
@@ -73,6 +79,16 @@ class Department{
             );
         }
         return $departments;
+    }
+    public static function create($nom, $code, $description, $createdBy) {
+        $stmt = DatabaseConnexion::getInstance()->prepare('INSERT INTO Departement (nom, code, description, createdBy) VALUES (:nom, :code, :description, :createdBy)');
+        $stmt->execute([
+            'nom' => $nom,
+            'code' => $code,
+            'description' => $description,
+            'createdBy' => $createdBy
+        ]);
+        return self::get(DatabaseConnexion::getInstance()->lastInsertId()); 
     }
 
 

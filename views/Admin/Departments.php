@@ -6,15 +6,16 @@
     <head>
         <link rel="stylesheet" href="/Views/General.css">
         <script>
-            function loadDepartments(){
-                fetch('/api/departments')
-                .then(response => response.json())
-                .then(data => {
-                    const tableBody = document.getElementById('Department-Data');
-                    tableBody.innerHTML = '';
-                    data.forEach(department => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
+            function showDepartments(data) {
+                const tableBody = document.getElementById('Department-Data');
+                tableBody.innerHTML = '';
+                if (data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="4">Aucunes données disponibles</td></tr>`;
+                    return;
+                }
+                data.forEach(department => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
                             <td>${department.nom}</td>
                             <td>${department.code}</td>
                             <td>
@@ -26,15 +27,58 @@
                                 </button>
                             </td>
                         `;
-                        tableBody.appendChild(row);
-                    });
-                })
+                    tableBody.appendChild(row);
+                });
             }
+            function loadDepartments(){
+                <?php if (isset($_GET['page'])): ?>
+                    const page = "<?php echo htmlspecialchars($_GET['page']); ?>";
+                <?php else: ?>
+                    const form = document.createElement('form');
+                    form.method = 'GET';
+                    form.action = '/departments';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'page';
+                    input.value = 1;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
+                <?php endif; ?>
+                <?php if (isset($_GET['query'])): ?>
+                    const query = "<?php echo htmlspecialchars($_GET['query']); ?>";
+                    fetch(`/api/departments?query=${encodeURIComponent(query)}&page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        showDepartments(data);
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        const tableBody = document.getElementById('Department-Data');
+                        tableBody.innerHTML = `<tr><td colspan="4">Une erreur est survenue lors du chargement des données. Veuillez réessayer plus tard.</td></tr>`;
+                    });
+                <?php else: ?>
+                    fetch(`/api/departments?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        showDepartments(data);
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        const tableBody = document.getElementById('Department-Data');
+                        tableBody.innerHTML = `<tr><td colspan="4">Une erreur est survenue lors du chargement des données. Veuillez réessayer plus tard.</td></tr>`;
+                    });
+                <?php endif; ?>
+            }
+
             function createDepartment() {
                 const form = document.getElementById('addDepartmentForm');
                 const data = {
                     nom: form.nom.value,
-                    code: form.code.value
+                    code: form.code.value,
+                    description: form.description.value
                 }; 
             
                 if (!data.nom || !data.code) {
@@ -70,10 +114,11 @@
         <h1 class="titre">Départements</h1>
         <!-- Options de recherche et d'ajout -->
         <div class="options">
-            <div class="recherche" id="searchForm">
-                <input type="text" id="user_input" name="query" required>
-                <input onclick="rechercher()" class="recherche" type="submit" value="Recherche">
-            </div>
+            <form class="recherche" id="searchForm" method="GET" action="/departments">
+                <input type="hidden" name="page" value="1">
+                <input type="text" id="user_input" name="query" required  value="<?php echo isset($_GET['query']) ? $_GET['query'] : ''; ?>">
+                <input class="recherche" type="submit" value="Recherche">
+            </form>
             <!-- modal pour ajouter un département -->
             <button class="open-modal ajout">&#x2b;</button>
             <div class="modal-overlay" id="modalOverlay">
@@ -89,11 +134,17 @@
                         <label for="code">Code:</label>
                         <input type="text" name="code" id="code" placeholder="Entrez le code du département" required>
                     </div>
+                    <div>
+                        <label for="description">Description:</label>
+                        <textarea name="description" id="description" placeholder="Entrez la description du département" required></textarea>
+                    </div>
                     <button type="button" class="submit-button" onclick="createDepartment()">Ajouter un département</button>
                 </form>
             </div>
             </div>
-            <button onclick="loadDepartments()" class="reset">Supprimer la recherche</button>
+            <form class="searchForm" method="GET" action="/departments" style="width:200px;margin:none">
+                <button type="submit" class="reset">Supprimer la recherche</button>
+            </form>
         </div>
         
         <!-- Affichage des données -->
@@ -137,6 +188,25 @@
                     <button onclick="updateStudent()" class="submit-button" style="margin-top: 15px;">Mettre à jour l'étudiant</button>
                 </div>
             </div>
+        </div>
+        <div class="pagination-nav">
+            <form method="GET" action="departments" style="display:inline;">
+            <?php if (isset($_GET['query']) && !empty($_GET['query'])): ?>
+                    <input type="hidden" name="query" value="<?php echo htmlspecialchars($_GET['query']); ?>">
+                <?php endif; ?>
+                <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']-1)?>">
+                <button class="prev-button" type="submit">Précédent</button>
+            </form>
+            <div class="page-range">
+                Page <?php echo htmlspecialchars($_GET['page']); ?>
+            </div>
+            <form method="GET" action="departments" style="display:inline;">
+                <?php if (isset($_GET['query']) && !empty($_GET['query'])): ?>
+                    <input type="hidden" name="query" value="<?php echo htmlspecialchars($_GET['query']); ?>">
+                <?php endif; ?>
+                <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']+1)?>">
+                <button class="next-button" type="submit">Suivant</button>
+            </form>
         </div>
         <footer>
             @Copyright gestionCollege 2025
