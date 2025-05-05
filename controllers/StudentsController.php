@@ -12,10 +12,6 @@ class StudentsController {
      * Afficher la page de connexion
      */
     public function index() {
-        if (!isset($_SESSION['token']) || !\libs\Security::verifyCSRFToken($_SESSION['token'])) {
-            require VIEWS_PATH . 'ErrorRights.php';
-            exit;
-        }
         if(isset($_SESSION['user_role'])) {
             switch($_SESSION['user_role']){
                 case 'Admin':

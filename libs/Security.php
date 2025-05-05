@@ -2,7 +2,7 @@
 namespace libs;
 use models\DatabaseConnexion;
 
-define(CSRF_TOKEN_NAME, 'token');
+define('CSRF_TOKEN_NAME', 'token');
 
 class Security {
     /**

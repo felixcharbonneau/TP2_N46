@@ -95,7 +95,7 @@ input[type="submit"].recherche {
     margin-top: 20px;
     margin-bottom: 20px;
 }
-input.link{
+.link{
     background: none;
     border: none;
     color: white;

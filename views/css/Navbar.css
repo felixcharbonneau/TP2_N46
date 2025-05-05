@@ -66,7 +66,7 @@ nav:first-of-type {
     transition: font-size 0.3s ease;
 }
 
-#options a.link{
+#options .link{
     height: 85px;
     font-size: 19px;
     color: white;
@@ -80,24 +80,24 @@ nav:first-of-type {
     align-items: center;
     justify-content: center;
 }
-#options a.departement {
+#options .departement {
     width: 200px;
 }
-#options a.gestionGroupe{
+#options .gestionGroupe{
     width: 250px;
 }
 
-#options a:hover {
+#options .link:hover {
     text-decoration: underline;
     color: #000;
     transform: scale(1.1); 
 }
 
-#options a:active {
+#options link:active {
     color: black;
 }
 
-#options a:focus {
+#options link:focus {
     outline: none;
 }
 nav:hover {

@@ -14,6 +14,8 @@ class DepartmentsApi {
     public function getDepartments(){
         $query = isset($_GET['query']) ? $_GET['query'] : '';
         $page = isset($_GET['page']) ? $_GET['page'] : 1;
+
+        
         
         $departments = Department::getAll($page, $query);
         
@@ -35,8 +37,9 @@ class DepartmentsApi {
         }
         if (strlen($data['nom']) > 50 || strlen($data['code']) > 50) {
             header('HTTP/1.1 400 Bad Request');
-            return json_encode(['error' => 'Le nom ou la code ne doit pas dépasser 50 ou 255 caractères respectivement']);
+            return json_encode(['error' => 'Le nom ou la code ne doit pas dépasser 50 caractères']);
         }
+
 
         $department = Department::create($data['nom'], $data['code'], $data['description'], $_SESSION['user_email']);
 
