@@ -2,7 +2,7 @@
 namespace libs;
 use models\DatabaseConnexion;
 
-define('CSRF_TOKEN_NAME', 'token');
+define('CSRF_TOKEN_NAME', 'csrf_token');
 
 class Security {
     /**
@@ -17,35 +17,28 @@ class Security {
         return bin2hex(random_bytes($length));
     }
 
+    public static function verifyPassword($passw, $salt,$storedHash) {
+        $config = require CONFIG_PATH . 'database.php';
+        $pepper = '23jiasf98A?&S&*dsnj21ASUIDhui12';
+        return password_verify($passw . $salt . $pepper, $storedHash);
+    }
+
     public static function generateCSRFToken() {
         $token = self::generateToken();
         $_SESSION[CSRF_TOKEN_NAME] = $token;
         return $token;
     }
 
-    public static function verifyCSRFToken($token) {
+    public static function verifyCSRFToken($token, $constant) {
         if (!isset($_SESSION[CSRF_TOKEN_NAME])) {
             return false;
         }
         
         $stored = $_SESSION[CSRF_TOKEN_NAME];
-        
+        $stored = hash('sha256', $stored . $constant);
+
         return hash_equals($stored, $token);
     }
-
-    public static function logSecurityAction($action, $details = null, $userId = null, $userType = null) {
-        $db = DatabaseConnexion::getInstance();
-        
-        $data = [
-            'utilisateur_id' => $userId,
-            'ip_address' => self::getClientIp(),
-            'action' => $action,
-            'details' => $details
-        ];
-        
-        $db->insert('securite_logs', $data);
-    }
-
 
     public static function generateApiToken() {
         return self::generateToken(64);

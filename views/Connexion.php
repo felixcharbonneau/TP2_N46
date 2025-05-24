@@ -19,9 +19,9 @@
                 <div class="role" style="display:absolute;grid-column:span 2;margin:auto">
                     <input type="radio" name="role" value="Admin" id="admin">
                     <label for="admin">Admin</label>
-                    <input type="radio" name="role" value="Enseignant" id="enseignant">
+                    <input type="radio" name="role" value="Teacher" id="enseignant">
                     <label for="enseignant">Enseignant</label>
-                    <input type="radio" name="role" value="Etudiant" id="etudiant" checked>
+                    <input type="radio" name="role" value="Student" id="etudiant" checked>
                     <label for="etudiant">Etudiant</label>
                 </div>
                 <label for="email">Courriel:</label>

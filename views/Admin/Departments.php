@@ -9,11 +9,31 @@
             function showDepartments(data) {
                 const tableBody = document.getElementById('Department-Data');
                 tableBody.innerHTML = '';
-                if (data.length === 0) {
+                if (data.page > data.nbPage || data.page < 1) {
+                    const form = document.createElement('form');
+                    form.method = 'GET';
+                    form.action = '/departments';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'page';
+                    input.value = data.page > data.nbPage ? data.nbPage : 1;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
+                    return;
+                }
+                if(data.page >= data.nbPage){
+                    document.querySelector('.next-button').disabled = true;
+                }else{
+                    document.querySelector('.next-button').disabled = false;
+                }
+                if (data.departments.length === 0) {
                     tableBody.innerHTML = `<tr><td colspan="4">Aucunes données disponibles</td></tr>`;
                     return;
                 }
-                data.forEach(department => {
+                data.departments.forEach(department => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                             <td>${department.nom}</td>
@@ -105,6 +125,24 @@
                 .catch(error => alert(error.message));
             }
 
+            function deleteDepartment(id) {
+                if (confirm('Êtes-vous sûr de vouloir supprimer ce département ?')) {
+                    fetch(`/api/departments/${id}`, {
+                        method: 'DELETE',
+                    })
+                        .then(response => {
+                            if (response.status === 204) {
+                                loadDepartments();
+                            } else {
+                                alert('Une erreur est survenue lors de la suppression du département.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erreur:', error);
+                            alert('Une erreur est survenue. Veuillez réessayer.');
+                        });
+                }
+            }
 
             loadDepartments();
         </script>
@@ -195,7 +233,11 @@
                     <input type="hidden" name="query" value="<?php echo htmlspecialchars($_GET['query']); ?>">
                 <?php endif; ?>
                 <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']-1)?>">
-                <button class="prev-button" type="submit">Précédent</button>
+                <?php if ($_GET['page'] > 1): ?>
+                    <button class="prev-button" type="submit">Précédent</button>
+                <?php else: ?>
+                    <button class="prev-button" type="submit" disabled>Précédent</button>
+                <?php endif; ?>
             </form>
             <div class="page-range">
                 Page <?php echo htmlspecialchars($_GET['page']); ?>

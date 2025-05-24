@@ -1,0 +1,16 @@
+{
+    "name": "your-vendor-name/your-project-name",
+    "description": "A brief description of your project",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "controllers\\": "controllers/",
+            "models\\": "models/",
+            "libs\\": "libs/"
+        }
+    },
+    "require": {
+        "php": "^8.0",
+        "phpunit/phpunit": "^12.1"
+    }
+}

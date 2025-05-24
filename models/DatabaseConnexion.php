@@ -1,12 +1,14 @@
 <?php
 namespace models;
 use PDO;
-
+/**
+ * Classe de connexion à la base de données
+ */
 class DatabaseConnexion{
     public static $instance = null;
     private $pdo;
     public function __construct(){
-        $config = require CONFIG_PATH . 'database.php';
+        $config = require 'config/database.php';
         try {
             $this->pdo = new \PDO("mysql:host={$config['host']};dbname={$config['dbname']};charset={$config['charset']}", $config['username'], $config['password']);
             $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -14,7 +16,10 @@ class DatabaseConnexion{
             die("Database connection failed: " . $e->getMessage());
         }
     }
-
+    /**
+     * Renvoie l'instance de la connexion à la base de données
+     * @return PDO l'instance de la connexion à la base de données
+     */
     public static function getInstance(){
         if (self::$instance === null) {
             self::$instance = new DatabaseConnexion();

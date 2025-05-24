@@ -12,7 +12,6 @@ abstract class User {
     public string $dateNaissance;//<la date de naissance de la personne
     public string $createdBy;//<l'utilisateur ayant créé la personne
     public string $modifiedBy;//<l'utilisateur ayant modifié la personne
-
     /**
      * Constructeur de la personne
      * @param int $id l'identifiant de la personne
@@ -50,8 +49,4 @@ abstract class User {
      * @param string $email l'email de la personne
      */
     abstract static function selectByEmail($email);
-
-
-
-
 }

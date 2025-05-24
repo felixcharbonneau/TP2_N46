@@ -1,6 +1,7 @@
 <?php
 namespace models;
 use models\DatabaseConnexion;
+use libs\Security;
 
 /**
  * Classe représentant un étudiant
@@ -14,7 +15,7 @@ class Student extends User {
         string $prenom,
         string $email,
         string $dateNaissance,
-        string $createdBy,
+        string $createdBy = 'system',
         ?string $modifiedBy = '',
         string $da = '',
         string $dateInscription = ''
@@ -27,79 +28,161 @@ class Student extends User {
      * Sélectionne un étudiant par son Courriel
      * @param string $email l'email de l'étudiant
      */
-    public static function selectByEmail($email) {
-        $stmt = DatabaseConnexion::getInstance()->prepare('
-            SELECT id, nom, prenom, email, dateNaissance, createdBy, modifiedBy, da, dateInscription
-            FROM Etudiant
-            WHERE email = :email'
+public static function selectByEmail($email) {
+    $stmt = DatabaseConnexion::getInstance()->prepare('
+        SELECT id, nom, prenom, email, dateNaissance, createdBy, modifiedBy, da, dateInscription
+        FROM Etudiant
+        WHERE email = :email'
+    );
+    $stmt->execute(['email' => $email]);
+
+    // Check if any result is returned
+    if ($stmt->rowCount() > 0) {
+        // Fetch the result once
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        // Pass the fetched data to the Student constructor
+        return new Student(
+            $result['id'],
+            $result['nom'],
+            $result['prenom'],
+            $result['email'],
+            $result['dateNaissance'],
+            $result['createdBy'],
+            $result['modifiedBy'],
+            $result['da'],
+            $result['dateInscription']
         );
-        $stmt->execute(['email' => $email]);
-        if ($stmt->rowCount() > 0) {
-            return new Student(
-                $stmt->fetch(\PDO::FETCH_ASSOC)['id'],
-                $stmt->fetch(\PDO::FETCH_ASSOC)['nom'],
-                $stmt->fetch(\PDO::FETCH_ASSOC)['prenom'],
-                $stmt->fetch(\PDO::FETCH_ASSOC)['email'],
-                $stmt->fetch(\PDO::FETCH_ASSOC)['dateNaissance'],
-                $stmt->fetch(\PDO::FETCH_ASSOC)['createdBy'],
-                $stmt->fetch(\PDO::FETCH_ASSOC)['modifiedBy'],
-                $stmt->fetch(\PDO::FETCH_ASSOC)['da'],
-                $stmt->fetch(\PDO::FETCH_ASSOC)['dateInscription']
-            );
-        }
-        return false;
     }
+
+    // Return false if no result is found
+    return false;
+}
+
+    public static function getStudentsInGroups(array $groupIds): array
+    {
+        if (empty($groupIds)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($groupIds), '?'));
+
+        $sql = "SELECT eg.idGroupe, e.id, e.nom, e.prenom, e.email
+                FROM Etudiant e
+                JOIN EtudiantGroupe eg ON e.id = eg.idEtudiant
+                WHERE eg.idGroupe IN ($placeholders)";
+
+        $pdo = DatabaseConnexion::getInstance();
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($groupIds);
+
+        $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $studentsByGroup = [];
+        foreach ($result as $row) {
+            $groupId = $row['idGroupe'];
+            if (!isset($studentsByGroup[$groupId])) {
+                $studentsByGroup[$groupId] = [];
+            }
+            $studentsByGroup[$groupId][] = $row;
+        }
+
+        return $studentsByGroup;
+    }
+
+    public static function removeFromGroup(int $studentId, int $groupId): bool
+    {
+        $pdo = DatabaseConnexion::getInstance();
+        $stmt = $pdo->prepare("DELETE FROM EtudiantGroupe WHERE idEtudiant = ? AND idGroupe = ?");
+        return $stmt->execute([$studentId, $groupId]);
+    }
+
+
     /**
      * Vérifie les informations de connexion de l'étudiant
      * @param string $password Le mot de passe de l'étudiant
      * @return bool true si les informations de connexion sont valides, sinon false
      */
     public function connexion($password) {
-        $stmt = DatabaseConnexion::getInstance()->prepare('SELECT password FROM Etudiant WHERE email = :email');
+        $stmt = DatabaseConnexion::getInstance()->prepare('SELECT password,salt FROM Etudiant WHERE email = :email');
         $stmt->bindValue(':email', $this->email);
         $stmt->execute();
         if ($stmt->rowCount() > 0) {
-            $hashedPassword = $stmt->fetch(\PDO::FETCH_ASSOC)['password'];
-            return password_verify($password, $hashedPassword);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $hashedPassword = $result['password'];
+            $salt = $result['salt'];
+            return Security::verifyPassword($password, $salt, $hashedPassword);
         }
         return false;
     }
-    /**
-     * Récupere tous les étudiants
-     * @return array un tableau d'objets Student
-     */
-    public static function getAll($page, $searchValue = '') {
-        $students = array();
-        $ValuePerPage = 25;
-        $pageStart = ($page - 1) * 25;
-        
-        if(!$searchValue){
-            $query = DatabaseConnexion::getInstance()->prepare('SELECT id, nom, prenom, email, dateNaissance, createdBy, modifiedBy, da, dateInscription FROM Etudiant LIMIT :pageStart, :ValuePerPage');
-        }else{
-            $query = DatabaseConnexion::getInstance()->prepare('SELECT id, nom, prenom, email, dateNaissance, createdBy, modifiedBy, da, dateInscription FROM Etudiant WHERE nom LIKE :searchValue OR prenom LIKE :searchValue OR da LIKE :searchValue OR email LIKE :searchValue LIMIT :pageStart, :ValuePerPage');
-            $query->bindValue(':searchValue', '%' . $searchValue . '%', \PDO::PARAM_STR);
-        }
+/**
+ * Récupère tous les étudiants
+ * @param int|null $page La page à récupérer (null pour tout récupérer sans pagination)
+ * @param string $searchValue La valeur de recherche facultative
+ * @return array Un tableau d'objets Student et des métadonnées si pagination activée
+ */
+public static function getAll($page = null, $searchValue = '')
+{
+    $students = array();
+    $ValuePerPage = 25;
+    $params = [];
+
+    $baseQuery = 'SELECT id, nom, prenom, email, dateNaissance, createdBy, modifiedBy, da, dateInscription FROM Etudiant';
+
+    if (!empty($searchValue)) {
+        $baseQuery .= ' WHERE nom LIKE :searchValue OR prenom LIKE :searchValue OR da LIKE :searchValue OR email LIKE :searchValue';
+        $params[':searchValue'] = '%' . $searchValue . '%';
+    }
+
+    if (!is_null($page)) {
+        $pageStart = ($page - 1) * $ValuePerPage;
+        $baseQuery .= ' LIMIT :pageStart, :ValuePerPage';
+    }
+
+    $query = DatabaseConnexion::getInstance()->prepare($baseQuery);
+
+    foreach ($params as $key => $value) {
+        $query->bindValue($key, $value, \PDO::PARAM_STR);
+    }
+
+    if (!is_null($page)) {
         $query->bindValue(':pageStart', $pageStart, \PDO::PARAM_INT);
         $query->bindValue(':ValuePerPage', $ValuePerPage, \PDO::PARAM_INT);
-        $query->execute();
-        if ($query && $query->rowCount() > 0) {
-            while ($row = $query->fetch(\PDO::FETCH_ASSOC)) {
-                $students[] = new Student(
-                    $row['id'],
-                    $row['nom'],
-                    $row['prenom'],
-                    $row['email'],
-                    $row['dateNaissance'],
-                    $row['createdBy'],
-                    $row['modifiedBy'],
-                    $row['da'],
-                    $row['dateInscription']
-                );
-            }
-        }
-    
+    }
+
+    $query->execute();
+
+    while ($row = $query->fetch(\PDO::FETCH_ASSOC)) {
+        $students[] = new Student(
+            $row['id'],
+            $row['nom'],
+            $row['prenom'],
+            $row['email'],
+            $row['dateNaissance'],
+            $row['createdBy'],
+            $row['modifiedBy'],
+            $row['da'],
+            $row['dateInscription']
+        );
+    }
+
+    if (is_null($page)) {
         return $students;
     }
+
+    $count = self::getTotal($searchValue);
+    $nbPage = max(1, ceil($count / $ValuePerPage));
+    $page = max(1, min($page, $nbPage));
+
+    return [
+        'students' => $students,
+        'total' => $count,
+        'page' => $page,
+        'perPage' => $ValuePerPage,
+        'nbPage' => $nbPage
+    ];
+}
+
     /**
      * Récupère un étudiant par son ID
      * @param int $id L'ID de l'étudiant
@@ -236,6 +319,16 @@ class Student extends User {
         } while ($count > 0);
     
         return (string)$randomNumber;
+    }
+    public static function getTotal($searchValue = '') {
+        if(!$searchValue){
+            $stmt = DatabaseConnexion::getInstance()->prepare('SELECT COUNT(*) FROM Etudiant');
+        }else{
+            $stmt = DatabaseConnexion::getInstance()->prepare('SELECT COUNT(*) FROM Etudiant WHERE nom LIKE :searchValue OR prenom LIKE :searchValue OR da LIKE :searchValue OR email LIKE :searchValue');
+            $stmt->bindValue(':searchValue', '%' . $searchValue . '%', \PDO::PARAM_STR);
+        }
+        $stmt->execute();
+        return $stmt->fetchColumn();
     }
     
 }

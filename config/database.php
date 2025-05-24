@@ -6,5 +6,6 @@ return [
     'dbname' => $env['DB_NAME'],
     'username' => $env['DB_USERNAME'],
     'password' => $env['DB_PASSWORD'],
-    'charset' => $env['DB_CHARSET']
+    'charset' => $env['DB_CHARSET'],
+    'pepper' => $env['PEPPER']
 ];

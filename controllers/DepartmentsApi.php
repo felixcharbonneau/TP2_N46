@@ -13,10 +13,7 @@ class DepartmentsApi {
     }
     public function getDepartments(){
         $query = isset($_GET['query']) ? $_GET['query'] : '';
-        $page = isset($_GET['page']) ? $_GET['page'] : 1;
-
-        
-        
+        $page = isset($_GET['page']) ? $_GET['page'] : null;
         $departments = Department::getAll($page, $query);
         
         return json_encode($departments);
@@ -41,7 +38,7 @@ class DepartmentsApi {
         }
 
 
-        $department = Department::create($data['nom'], $data['code'], $data['description'], $_SESSION['user_email']);
+        $department = Department::create($data['nom'], $data['code'], $data['description'], isset($_SESSION['user_email'])? $_SESSION['user_email'] : "system");
 
         if (!$department) {
             header('HTTP/1.1 404 Not Found');

@@ -13,7 +13,17 @@ class HomeController {
      */
     public function index() {
         // Inclure la vue
-        require VIEWS_PATH . '/Admin/Home.php';
+        switch ($_SESSION['user_role']) {
+            case 'Admin':
+                require VIEWS_PATH . '/Admin/Home.php';
+                break;
+            case 'Teacher':
+                require VIEWS_PATH . '/Teacher/Home.php';
+                break;
+            case 'Student':
+                require VIEWS_PATH . '/Student/Home.php';
+                break;
+        }
     }
 
 }

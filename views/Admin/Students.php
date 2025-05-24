@@ -1,6 +1,7 @@
 <?php
     namespace views\Admin;
     include VIEWS_PATH . 'Navbar/AdminNavbar.php';
+    $nbPages = 0;
 ?>
 <!-- Page pour afficher la gestion des étudiants pour l'admin -->
 <html>
@@ -13,12 +14,15 @@
             function showUsers(data) {
                 const tableBody = document.getElementById('Student-Data');
                 tableBody.innerHTML = '';
-                if (data.length === 0) {
+                if (data.students.length === 0) {
                     tableBody.innerHTML = `<tr><td colspan="4">Aucunes données disponibles</td></tr>`;
                     return;
                 }
-                data.forEach(student => {
+                data.students.forEach(student => {
                     const row = document.createElement('tr');
+                    student.nom = student.nom.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+                    student.prenom = student.prenom.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+                    student.da = student.da.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
                     row.innerHTML = `
                         <td>${student.da}</td>
                         <td>${student.nom} ${student.prenom}</td>
@@ -33,6 +37,11 @@
                         </td>`;
                     tableBody.appendChild(row);
                 });
+                if(data.page >= data.nbPage){
+                    document.querySelector('.next-button').disabled = true;
+                }else{
+                    document.querySelector('.next-button').disabled = false;
+                }
             }
             /**
              * Fonction pour charger les étudiants depuis l'API et les afficher dans la table
@@ -67,16 +76,16 @@
                             tableBody.innerHTML = `<tr><td colspan="4">Une erreur est survenue lors du chargement des données. Veuillez réessayer plus tard.</td></tr>`;
                         });
                 <?php else: ?>
-                fetch(`/api/students?page=${page}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        showUsers(data);
-                    })
-                    .catch(error => {
-                        console.error('Erreur:', error);
-                        const tableBody = document.getElementById('Student-Data');
-                        tableBody.innerHTML = `<tr><td colspan="4">Une erreur est survenue lors du chargement des données. Veuillez réessayer plus tard.</td></tr>`;
-                    });
+                    fetch(`/api/students?page=${page}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            showUsers(data);
+                        })
+                        .catch(error => {
+                            console.error('Erreur:', error);
+                            const tableBody = document.getElementById('Student-Data');
+                            tableBody.innerHTML = `<tr><td colspan="4">Une erreur est survenue lors du chargement des données. Veuillez réessayer plus tard.</td></tr>`;
+                        });
                 <?php endif; ?>
                 document.getElementById('user_input').value = '';
             }
@@ -299,7 +308,11 @@
                     <input type="hidden" name="query" value="<?php echo htmlspecialchars($_GET['query']); ?>">
                 <?php endif; ?>
                 <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']-1)?>">
-                <button class="prev-button" type="submit">Précédent</button>
+                <?php if ($_GET['page'] > 1): ?>
+                    <button class="prev-button" type="submit">Précédent</button>
+                <?php else: ?>
+                    <button class="prev-button" type="submit" disabled>Précédent</button>
+                <?php endif; ?>
             </form>
             <div class="page-range">
                 Page <?php echo htmlspecialchars($_GET['page']); ?>

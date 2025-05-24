@@ -1,9 +1,14 @@
 <?php
 namespace controllers;
 use models\Student;
-
+/**
+ * Api des étudiants
+ */
 class StudentsApi {
-
+    /**
+     * Constructeur de la classe
+     * Définit les en-têtes de la réponse HTTP
+     */
     public function __construct() {
         
         header('Content-Type: application/json');
@@ -77,6 +82,11 @@ class StudentsApi {
         header('HTTP/1.1 500 Internal Server Error');
         return json_encode(['error' => 'Erreur lors de la suppression de l\'utilisateur']);
     }
+    /**
+     * Met à jour un étudiant
+     * @param int $id L'ID de l'étudiant à mettre à jour
+     * @return string JSON contenant le résultat de la mise à jour
+     */
     public function updateStudent($id) {
         $data = json_decode(file_get_contents('php://input'), true);
 

@@ -6,7 +6,7 @@ class Department{
     public string $nom;//<le nom du département
     public string $code;//<le code du département
     public string $description;//<la description du département
-    private string $createdBy;//<l'utilisateur ayant créé le département
+    private ?string $createdBy;//<l'utilisateur ayant créé le département
     private ?string $modifiedBy;
     /**
      * Constructeur
@@ -49,37 +49,77 @@ class Department{
         }
         return false;
     }
-    /**
-     * Sélectionne tous les départements
-     * @param string $query la requête de recherche
-     * @return array|false un tableau de départements ou false si non trouvé
-     */
-    public static function getAll($page, $searchValue = '') {
-        $departments = array();
-        $ValuePerPage = 25;
-        $pageStart = ($page - 1) * 25;
+public static function getAll($page = null, $searchValue = '') {
+    $departments = array();
+    $ValuePerPage = 25;
 
-        if(!$searchValue){
-            $stmt = DatabaseConnexion::getInstance()->prepare('SELECT id, nom, code, description, createdBy, modifiedBy FROM Departement LIMIT :pageStart, :ValuePerPage');
-        }else{
-            $stmt = DatabaseConnexion::getInstance()->prepare('SELECT id, nom, code, description, createdBy, modifiedBy FROM Departement WHERE nom LIKE :query OR code LIKE :query LiMIT :pageStart, :ValuePerPage');
+    // Cas où on veut tout récupérer (page null ou 0)
+    $noPagination = is_null($page) || $page === 0;
+
+    if ($noPagination) {
+        if (!$searchValue) {
+            $stmt = DatabaseConnexion::getInstance()->prepare(
+                'SELECT id, nom, code, description, createdBy, modifiedBy FROM Departement'
+            );
+        } else {
+            $stmt = DatabaseConnexion::getInstance()->prepare(
+                'SELECT id, nom, code, description, createdBy, modifiedBy FROM Departement 
+                 WHERE nom LIKE :query OR code LIKE :query'
+            );
+            $stmt->bindValue(':query', '%' . $searchValue . '%', \PDO::PARAM_STR);
+        }
+    } else {
+        $pageStart = ($page - 1) * $ValuePerPage;
+        if (!$searchValue) {
+            $stmt = DatabaseConnexion::getInstance()->prepare(
+                'SELECT id, nom, code, description, createdBy, modifiedBy 
+                 FROM Departement 
+                 LIMIT :pageStart, :ValuePerPage'
+            );
+        } else {
+            $stmt = DatabaseConnexion::getInstance()->prepare(
+                'SELECT id, nom, code, description, createdBy, modifiedBy 
+                 FROM Departement 
+                 WHERE nom LIKE :query OR code LIKE :query 
+                 LIMIT :pageStart, :ValuePerPage'
+            );
             $stmt->bindValue(':query', '%' . $searchValue . '%', \PDO::PARAM_STR);
         }
         $stmt->bindValue(':pageStart', $pageStart, \PDO::PARAM_INT);
         $stmt->bindValue(':ValuePerPage', $ValuePerPage, \PDO::PARAM_INT);
-        $stmt->execute();
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $departments[] = new Department(
-                $row['id'],
-                $row['nom'],
-                $row['code'],
-                $row['description'],
-                $row['createdBy'],
-                $row['modifiedBy']
-            );
-        }
-        return $departments;
     }
+
+    $stmt->execute();
+    while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        $departments[] = new Department(
+            $row['id'],
+            $row['nom'],
+            $row['code'],
+            $row['description'],
+            $row['createdBy'],
+            $row['modifiedBy']
+        );
+    }
+
+    // En cas de noPagination, inutile de renvoyer pagination info
+    if ($noPagination) {
+        return ['departments' => $departments];
+    }
+
+    $count = self::getTotal($searchValue);
+    $nbPage = ceil($count / $ValuePerPage);
+    $nbPage = max($nbPage, 1); // minimum 1
+    $page = min(max($page, 1), $nbPage); // page >= 1 et <= nbPage
+
+    return [
+        'departments' => $departments,
+        'total' => $count,
+        'page' => $page,
+        'perPage' => $ValuePerPage,
+        'nbPage' => $nbPage
+    ];
+}
+
     public static function create($nom, $code, $description, $createdBy) {
         $stmt = DatabaseConnexion::getInstance()->prepare('INSERT INTO Departement (nom, code, description, createdBy) VALUES (:nom, :code, :description, :createdBy)');
         $stmt->execute([
@@ -90,7 +130,14 @@ class Department{
         ]);
         return self::get(DatabaseConnexion::getInstance()->lastInsertId()); 
     }
-
-
-
+    public static function getTotal($searchValue = '') {
+        if ($searchValue) {
+            $stmt = DatabaseConnexion::getInstance()->prepare('SELECT COUNT(*) FROM Departement WHERE nom LIKE :query OR code LIKE :query');
+            $stmt->bindValue(':query', '%' . $searchValue . '%', \PDO::PARAM_STR);
+        } else {
+            $stmt = DatabaseConnexion::getInstance()->prepare('SELECT COUNT(*) FROM Departement');
+        }
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
 }

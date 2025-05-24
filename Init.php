@@ -7,6 +7,26 @@ $database = new \PDO($dsn, "test", "test", [
     \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
 ]);
 
+$database->exec("SET FOREIGN_KEY_CHECKS = 0;");
+
+// Get all table names
+$tables = $database->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
+
+foreach ($tables as $table) {
+    $database->exec("DROP TABLE `$table`");
+}
+
+// Re-enable foreign key checks
+$database->exec("SET FOREIGN_KEY_CHECKS = 1;");
+
+echo "All tables deleted.";
+
+
+
+
+
+
+
 //Admin
 try{
     $created = $database->exec(
@@ -16,6 +36,7 @@ try{
             `prenom` VARCHAR(50) NOT NULL,
             `email` VARCHAR(100) NOT NULL,
             `password` VARCHAR(255) NOT NULL,
+            `salt` VARCHAR(16) NOT NULL,
             `createdBy` VARCHAR(100),
             `createdOn` DATE NOT NULL DEFAULT CURRENT_DATE(),
             `modifiedOn` DATE NOT NULL DEFAULT CURRENT_DATE(),
@@ -41,6 +62,7 @@ try{
             `email` VARCHAR(100) NOT NULL,
             `dateInscription` DATE NOT NULL,
             `password` VARCHAR(255) NOT NULL,
+            `salt` VARCHAR(16) NOT NULL,
             `createdBy` VARCHAR(100),
             `createdOn` DATE NOT NULL DEFAULT CURRENT_DATE(),
             `modifiedOn` DATE NOT NULL DEFAULT CURRENT_DATE(),
@@ -88,7 +110,7 @@ try{
             `email` VARCHAR(100) NOT NULL,
             `dateEmbauche` DATE NOT NULL,
             `password` VARCHAR(255) NOT NULL,
-            `coordonateur` BOOLEAN NOT NULL,
+            `salt` VARCHAR(16) NOT NULL,
             `idDepartement` INT UNSIGNED DEFAULT NULL,
             `createdBy` VARCHAR(100),
             `createdOn` DATE NOT NULL DEFAULT CURRENT_DATE(),
@@ -178,27 +200,32 @@ try{
     print_r($error);
     die();
 }
-
-// Admin par défaut
-try {
-    $sql = "INSERT INTO Admin (nom, prenom, email, password, createdBy)
-            VALUES (:nom, :prenom, :email, :password, :createdBy)";
-    $stmt = $database->prepare($sql);
-
-    $stmt->bindValue(':nom', "root"); 
-    $stmt->bindValue(':prenom', "root"); 
-    $password = password_hash("root", PASSWORD_DEFAULT);
-    $stmt->bindValue(':password', $password);
-    $stmt->bindValue(':email', "root@root.com");
-    $stmt->bindValue(':createdBy', "system"); 
-
-    $stmt->execute();
-} catch (Exception $error) {
-    echo 'Erreur lors de la creation de l\'admin par défaut';
+//Logs
+try{
+    $created = $database->exec(
+        <<<SQL
+        CREATE TABLE IF NOT EXISTS `Log`(
+            `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `ip` VARCHAR(15) NOT NULL,
+            `message` TEXT NOT NULL,
+            `createdBy` VARCHAR(100),
+            `createdOn` DATE NOT NULL DEFAULT CURRENT_DATE(),
+            `modifiedOn` DATE NOT NULL DEFAULT CURRENT_DATE(),
+            `modifiedBy` VARCHAR(100),
+            PRIMARY KEY(`id`)
+        );
+        SQL
+    );
+}catch (Exception $error) {
+    echo 'Erreur lors de la creation de la table Etudiant';
     echo '<br>';
     print_r($error);
     die();
 }
+
+
+
+
 
 //Supprime un groupe lorsque son cours correspondant est supprimé
 try {

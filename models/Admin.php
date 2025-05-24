@@ -1,13 +1,13 @@
 <?php
 namespace models;
 use models\DatabaseConnexion;
+use libs\Security;
 
 /**
  * Classe pour l'admininistrateur du système
  */
-class Admin {
+class Admin{
     public $email;//< email de l'admin
-    public string $token;//< token de l'admin
 
     /**
      * Constructeur de la classe Admin
@@ -35,12 +35,14 @@ class Admin {
      * @return bool true si le mot de passe est correct, false sinon
      */
     public function connexion($password) {
-        $stmt = DatabaseConnexion::getInstance()->prepare('SELECT password FROM Admin WHERE email = :email');
+        $stmt = DatabaseConnexion::getInstance()->prepare('SELECT password,salt FROM Admin WHERE email = :email');
         $stmt->bindValue(':email', $this->email);
         $stmt->execute();
         if ($stmt->rowCount() > 0) {
-            $hashedPassword = $stmt->fetch(\PDO::FETCH_ASSOC)['password'];
-            return password_verify($password, $hashedPassword);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $hashedPassword = $result['password'];
+            $salt = $result['salt'];
+            return Security::verifyPassword($password, $salt, $hashedPassword);
         }
         return false;
     }

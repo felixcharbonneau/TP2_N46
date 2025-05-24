@@ -34,9 +34,10 @@ if (strpos($url, 'api/') === 0) {
     $resource = $pathParts[0] ?? '';
     $id = $pathParts[1] ?? null;
 
-    $apiController = new \controllers\StudentsApi();
+
     $method = strtolower($_SERVER['REQUEST_METHOD']);
         if ($resource === 'students') {
+            $apiController = new \controllers\StudentsApi();
             if ($method === 'get') {
                 if ($id) {
                     echo $apiController->getStudent($id);
@@ -65,7 +66,22 @@ if (strpos($url, 'api/') === 0) {
             } elseif ($method === 'delete' && $id) {
                 echo $apiController->deleteDepartment($id);
             }
-        } else {
+        }elseif ($resource === 'teachers') {
+            $apiController = new \controllers\TeacherApi();
+            if ($method === 'get') {
+                if ($id) {
+                    echo $apiController->getTeachers($id);
+                } else {
+                    echo $apiController->getTeachers();
+                }
+            } elseif ($method === 'post') {
+                echo $apiController->createTeacher();
+            } elseif ($method === 'put' && $id) {
+                echo $apiController->updateTeacher($id);
+            } elseif ($method === 'delete' && $id) {
+                echo $apiController->deleteTeacher($id);
+            }
+        }  else {
             header('HTTP/1.1 404 Not Found');
             echo json_encode(['error' => 'Ressource non trouvée']);
         }

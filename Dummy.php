@@ -1,6 +1,6 @@
 <!-- fichier de génération de données factices -->
 <?php
-
+$pepper = '23jiasf98A?&S&*dsnj21ASUIDhui12';
 $dsn = "mysql:host=db;dbname=GestionGroupe;charset=utf8mb4";
 $database = new \PDO($dsn, "test", "test", [
     \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
@@ -202,8 +202,8 @@ try {
 }
 
 try {
-    $sql = "INSERT INTO Etudiant (da, nom, prenom, dateNaissance, email, dateInscription, password, createdBy) VALUES
-    (:da, :nom, :prenom, :dateNaissance, :email, :dateInscription, :password, :createdBy)";
+    $sql = "INSERT INTO Etudiant (da, nom, prenom, dateNaissance, email, dateInscription, password,salt, createdBy) VALUES
+    (:da, :nom, :prenom, :dateNaissance, :email, :dateInscription, :password,:salt, :createdBy)";
 
     $stmt = $database->prepare($sql);
 
@@ -218,7 +218,8 @@ try {
         $dateNaissance = date('Y-m-d', strtotime("-" . rand(18, 25) . " years")); 
         $email = "$da$i@etu.cegep-lanaudiere.qc.ca"; 
         $dateInscription = date('Y-m-d'); 
-        $password = password_hash(date('Ymd', strtotime($dateNaissance)), PASSWORD_DEFAULT); 
+        $salt = bin2hex(random_bytes(8));
+        $password = password_hash(date('Ymd', strtotime($dateNaissance)).$salt.$pepper, PASSWORD_DEFAULT); 
 
         $stmt->execute([
             ':da' => $da,
@@ -228,6 +229,7 @@ try {
             ':email' => $email,
             ':dateInscription' => $dateInscription,
             ':password' => $password,
+            ':salt' => $salt,
             ':createdBy' => 'system'
         ]);
     }
@@ -239,44 +241,48 @@ try {
     print_r($error);
     die();
 }
-try{
-    $teacherSql = "INSERT INTO Enseignant (id, nom, prenom, email, dateNaissance, dateEmbauche, password, createdBy, coordonateur, idDepartement) 
-    VALUES (:id, :nom, :prenom, :email, :dateNaissance, :dateEmbauche, :password, :createdBy, :coordonateur, :idDepartement)";
+// Insertion of teacher
+try {
+    $teacherSql = "INSERT INTO Enseignant (nom, prenom, email, dateNaissance, dateEmbauche, password, salt, createdBy, idDepartement) 
+                    VALUES (:nom, :prenom, :email, :dateNaissance, :dateEmbauche, :password, :salt, :createdBy, :idDepartement)";
+    $teacherStmt = $database->prepare($teacherSql);
 
-$teacherStmt = $database->prepare($teacherSql);
+    // Sample first and last names for random selection
+    $firstNames = ["Alice", "Bob", "Charlie", "David", "Eva", "Frank", "Grace", "Hannah", "Ivy", "Jack", "Kate", "Liam", "Mia", "Nathan", "Olivia", "Paul", "Quincy", "Rachel", "Sam", "Tina", "Ursula", "Victor", "Wendy", "Xander", "Yvonne", "Zach"];
+    $lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "García", "Rodriguez", "Martínez", "Hernández", "Lopez", "González", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris"];
 
-for ($i = 1; $i <= 60; $i++) {
-$teacherNom = $lastNames[array_rand($lastNames)];
-$teacherPrenom = $firstNames[array_rand($firstNames)];
-$teacherEmail = $teacherPrenom . "." . $teacherNom . str_pad($i, 3, '0', STR_PAD_LEFT) . "@etu.cegep-lanaudiere.qc.ca";
-$teacherDateNaissance = date('Y-m-d', strtotime("-" . rand(30, 60) . " years"));
-$teacherDateEmbauche = date('Y-m-d');
-$teacherPassword = password_hash("password", PASSWORD_DEFAULT);
+    for ($i = 1; $i <= 30; $i++) {
+        $teacherNom = $lastNames[array_rand($lastNames)];
+        $teacherPrenom = $firstNames[array_rand($firstNames)];
+        $teacherEmail = strtolower($teacherNom . "." . $teacherPrenom . "@example.com");  // Ensure email is unique
+        $teacherDateNaissance = date('Y-m-d', strtotime("-" . rand(25, 45) . " years"));
+        $teacherDateEmbauche = date('Y-m-d');
+        $teachersalt = bin2hex(random_bytes(8));  // Salt for teacher
+        $teacherPassword = password_hash("password" . $teachersalt . $pepper, PASSWORD_DEFAULT); // Hash the password with salt + pepper
 
-// Randomly set 'coordonateur' to true or false
-$coordonateur = 0;
+        // Execute the insert
+        $teacherStmt->execute([
+            ':nom' => $teacherNom,
+            ':prenom' => $teacherPrenom,
+            ':email' => $teacherEmail,
+            ':dateNaissance' => $teacherDateNaissance,
+            ':dateEmbauche' => $teacherDateEmbauche,
+            ':password' => $teacherPassword,
+            ':createdBy' => 'system',
+            ':idDepartement' => rand(1, 10),  // Assign a random department id (1-10)
+            ':salt' => $teachersalt
+        ]);
+        
+        echo "Teacher {$teacherNom} {$teacherPrenom} inserted successfully.\n";
+    }
 
-$teacherStmt->execute([
-':id' => $i,
-':nom' => $teacherNom,
-':prenom' => $teacherPrenom,
-':email' => $teacherEmail,
-':dateNaissance' => $teacherDateNaissance,
-':dateEmbauche' => $teacherDateEmbauche,
-':password' => $teacherPassword,
-':createdBy' => 'system',
-':coordonateur' => $coordonateur,
-':idDepartement' => rand(1, 10)
-]);
-}
-
-echo "Insertion réussie pour les 200 étudiants et 60 enseignants.";
 } catch (Exception $error) {
-echo 'Erreur lors de l\'insertion des étudiants et enseignants';
-echo '<br>';
-print_r($error);
-die();
+    echo 'Error during teacher creation: ';
+    print_r($error);
+    die();
 }
+
+
 // Generate 50 random groups
 for ($i = 1; $i <= 50; $i++) {
     // Random group name, you can customize this as needed
@@ -287,7 +293,7 @@ for ($i = 1; $i <= 50; $i++) {
     
     // Random course ID and teacher ID (make sure these IDs exist in your Cours and Enseignant tables)
     $randomCourseId = rand(1, 50); // Assuming you have 120 courses
-    $randomTeacherId = rand(1, 50); // Assuming you have 100 teachers
+    $randomTeacherId = rand(1, 10); // Assuming you have 100 teachers
     
     // Random description (customize as per your needs)
     $description = "Description for group " . $groupName;
@@ -374,6 +380,27 @@ foreach ($groupIds as $groupId) {
         }
     }
 }
+// Admin par défaut
+try {
+    $sql = "INSERT INTO Admin (nom, prenom, email, password,salt, createdBy)
+            VALUES (:nom, :prenom, :email, :password,:salt, :createdBy)";
+    $stmt = $database->prepare($sql);
 
+    $stmt->bindValue(':nom', "root"); 
+    $stmt->bindValue(':prenom', "root"); 
+    $salt = bin2hex(random_bytes(8)); 
+    $password = password_hash("root" . $salt . $pepper, PASSWORD_DEFAULT);
+    $stmt->bindValue(':password', $password);
+    $stmt->bindValue(':email', "root@root.com");
+    $stmt->bindValue(':createdBy', "system");
+    $stmt->bindValue(':salt', $salt);
+
+    $stmt->execute();
+} catch (Exception $error) {
+    echo 'Erreur lors de la creation de l\'admin par défaut';
+    echo '<br>';
+    print_r($error);
+    die();
+}
 
 ?>
