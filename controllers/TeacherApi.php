@@ -79,28 +79,34 @@ class TeacherApi {
     public function updateTeacher($id) {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        // Vérification des données requises
         if (!isset($data['nom']) || !isset($data['prenom']) || !isset($data['dateNaissance'])
             || empty($data['nom']) || empty($data['prenom']) || empty($data['dateNaissance'])) {
             header('HTTP/1.1 400 Bad Request');
             return json_encode(['error' => 'Données manquantes']);
         }
 
-        // Validation des données
-        if (strlen($data['nom']) > 50 || strlen($data['prenom']) > 50) {
-            header('HTTP/1.1 400 Bad Request');
-            return json_encode(['error' => 'Le nom ou prénom ne doit pas dépasser 50 caractères']);
-        }
-        // Appel à la méthode du modèle pour mettre à jour l'enseignant
-        $teacher = Teachers::update($id, $data['nom'], $data['prenom'], $data['dateNaissance'], $_SESSION['user_email'] ?? 0);
+        $teacher = Teachers::update(
+            $id,
+            $data['nom'],
+            $data['prenom'],
+            $data['dateNaissance'],
+            $_SESSION['user_email'] ?? null,
+            $data['departement'] ?? null,
+            $data['password'] ?? null
+        );
+
         if (!$teacher) {
             header('HTTP/1.1 404 Not Found');
-            return json_encode(['error' => 'Erreur lors de la mise à jour de l\'enseignant']);
-        } else {
-            header('HTTP/1.1 204 No Content');
-            return json_encode($teacher);  // Pas de contenu retourné pour la mise à jour
+            echo json_encode(['error' => 'Erreur lors de la mise à jour de l\'enseignant']);
+            exit;
         }
+
+        header('Content-Type: application/json');
+        // On retourne les données mises à jour (tableau) avec 200 OK
+        echo json_encode($teacher);
+        exit;
     }
+
 
     /**
      * Supprime un Enseignant

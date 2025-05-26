@@ -1,6 +1,16 @@
 <?php
     namespace views;
-    $errorMessage = isset($_GET['error']) ? "Courriel ou mot de passe incorrect" : null;
+    if(isset($_GET['error'])){
+        if ($_GET['error'] == '1'){
+            $errorMessage = "Courriel ou mot de passe incorrect";
+        }else if ($_GET['error'] == '2'){
+            $errorMessage = "Session expirée";
+        }else{
+            $errorMessage = "Une erreur est survenue";
+        }
+    }else{
+        $errorMessage = "";
+    }
 ?>
 
 
@@ -8,14 +18,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="/Views/css/General.css">
-</head>
+    <link rel="stylesheet" href="views/css/General.css"></head>
 <body class="connexion">
     <nav></nav>
     <div class=".connexionContainer">
         <div id="connexion">
             <h1>Connexion</h1>
-            <form style="gap:20px;position:relative" action="/Authentification/login" method="POST">
+            <form style="gap:20px;position:relative" action="Authentification/login" method="POST">
                 <div class="role" style="display:absolute;grid-column:span 2;margin:auto">
                     <input type="radio" name="role" value="Admin" id="admin">
                     <label for="admin">Admin</label>

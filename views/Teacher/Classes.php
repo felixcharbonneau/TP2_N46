@@ -2,7 +2,7 @@
 
 <html>
 <head>
-    <link rel="stylesheet" href="/Views/General.css">
+    <link rel="stylesheet" href="Views/General.css">
 </head>
 <body>
 <h1 class="titre">Groupes</h1>
@@ -28,12 +28,12 @@
                             <li>
                                 <?= htmlspecialchars($student['nom'] . ' ' . $student['prenom']) ?>
 
-                                <form method="POST" action="/classes/removeStudent" style="display:inline;">
+                                <form method="POST" action="classes/removeStudent" style="display:inline;">
                                     <input type="hidden" name="student_id" value="<?= htmlspecialchars($student['id']) ?>">
                                     <input type="hidden" name="group_id" value="<?= htmlspecialchars($class->id) ?>">
                                     <input type="hidden" name="csrf_token" value="<?php echo isset($removeToken) ? htmlspecialchars($removeToken) : ''; ?>">
                                     <button class="image-button" type="submit" onclick="return confirm('Supprimer cet étudiant du groupe ?');">
-                                        <img src="/Views/images/trash.webp" alt="Supprimer" class="delete-icon">
+                                        <img src="Views/images/trash.webp" alt="Supprimer" class="delete-icon">
                                     </button>
                                 </form>
                             </li>

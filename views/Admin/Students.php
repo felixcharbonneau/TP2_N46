@@ -6,7 +6,7 @@
 <!-- Page pour afficher la gestion des étudiants pour l'admin -->
 <html>
     <head>
-        <link rel="stylesheet" href="/Views/General.css">
+        <link rel="stylesheet" href="Views/General.css">
         <script>
             /**
              * Fonction pour afficher les étudiants dans la table
@@ -29,10 +29,10 @@
                         <td>${student.email}</td>
                         <td>
                             <button class="open-modal edit image-button" onclick="openEditModal(${student.id}, '${student.nom}', '${student.prenom}', '${student.dateNaissance}')">
-                                <img src="/Views/Images/pen.webp">
+                                <img src="Views/Images/pen.webp">
                             </button>
                             <button type=\"submit\" class=\"image-button\" onclick=\"deleteStudent(${student.id})\">
-                                <img src=\"/Views/Images/trash.webp\" alt=\"Icon\">
+                                <img src=\"Views/Images/trash.webp\" alt=\"Icon\">
                             </button>
                         </td>`;
                     tableBody.appendChild(row);
@@ -52,7 +52,7 @@
                 <?php else: ?>
                     const form = document.createElement('form');
                     form.method = 'GET';
-                    form.action = '/students';
+                    form.action = 'students';
 
                     const input = document.createElement('input');
                     input.type = 'hidden';
@@ -65,7 +65,7 @@
                 <?php endif; ?>
                 <?php if (isset($_GET['query'])): ?>
                     const query = "<?php echo htmlspecialchars($_GET['query']); ?>";
-                    fetch(`/api/students?query=${encodeURIComponent(query)}&page=${page}`)
+                    fetch(`api/students?query=${encodeURIComponent(query)}&page=${page}`)
                         .then(response => response.json())
                         .then(data => {
                             showUsers(data);
@@ -76,7 +76,7 @@
                             tableBody.innerHTML = `<tr><td colspan="4">Une erreur est survenue lors du chargement des données. Veuillez réessayer plus tard.</td></tr>`;
                         });
                 <?php else: ?>
-                    fetch(`/api/students?page=${page}`)
+                    fetch(`api/students?page=${page}`)
                         .then(response => response.json())
                         .then(data => {
                             showUsers(data);
@@ -130,7 +130,7 @@
              * @param {number} studentId - L'ID de l'étudiant à supprimer
              */
             function deleteStudent(studentId) {
-                fetch(`/api/students/${studentId}`, {
+                fetch(`api/students/${studentId}`, {
                     method: 'DELETE'
                 })
                 .then(async response => {
@@ -160,7 +160,7 @@
                     dateNaissance,
                     password
                 };
-                fetch(`/api/students/${id}`, {
+                fetch(`api/students/${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -197,7 +197,7 @@
                     alert("Veuillez remplir tous les champs.");
                     return;
                 }
-                fetch('/api/students', {
+                fetch('api/students', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -329,6 +329,6 @@
         <footer>
             @Copyright gestionCollege 2025
         </footer>
-        <script src="/Views/js/modals.js"></script>
+        <script src="Views/js/modals.js"></script>
     </body>
 </html>

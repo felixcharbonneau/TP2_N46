@@ -4,7 +4,7 @@
 
 <html>
     <head>
-        <link rel="stylesheet" href="/Views/General.css">
+        <link rel="stylesheet" href="Views/General.css">
         <script>
             function showDepartments(data) {
                 const tableBody = document.getElementById('Department-Data');
@@ -40,10 +40,10 @@
                             <td>${department.code}</td>
                             <td>
                                 <button class="open-modal edit image-button" onclick="openEditModal(${department.id}, '${department.nom}', '${department.code}')">
-                                    <img src="/Views/images/pen.webp" alt="Modifier" class="edit-icon">
+                                    <img src="Views/images/pen.webp" alt="Modifier" class="edit-icon">
                                 </button>
                                 <button class=\"image-button\" onclick="deleteDepartment(${department.id})">
-                                    <img src="/Views/images/trash.webp" alt="Supprimer" class="delete-icon">
+                                    <img src="Views/images/trash.webp" alt="Supprimer" class="delete-icon">
                                 </button>
                             </td>
                         `;
@@ -69,7 +69,7 @@
                 <?php endif; ?>
                 <?php if (isset($_GET['query'])): ?>
                     const query = "<?php echo htmlspecialchars($_GET['query']); ?>";
-                    fetch(`/api/departments?query=${encodeURIComponent(query)}&page=${page}`)
+                    fetch(`api/departments?query=${encodeURIComponent(query)}&page=${page}`)
                     .then(response => response.json())
                     .then(data => {
                         showDepartments(data);
@@ -80,7 +80,7 @@
                         tableBody.innerHTML = `<tr><td colspan="4">Une erreur est survenue lors du chargement des données. Veuillez réessayer plus tard.</td></tr>`;
                     });
                 <?php else: ?>
-                    fetch(`/api/departments?page=${page}`)
+                    fetch(`api/departments?page=${page}`)
                     .then(response => response.json())
                     .then(data => {
                         showDepartments(data);
@@ -105,7 +105,7 @@
                     alert("Veuillez remplir tous les champs.");
                     return;
                 }
-                fetch('/api/departments', {
+                fetch('api/departments', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -127,11 +127,11 @@
 
             function deleteDepartment(id) {
                 if (confirm('Êtes-vous sûr de vouloir supprimer ce département ?')) {
-                    fetch(`/api/departments/${id}`, {
+                    fetch(`api/departments/${id}`, {
                         method: 'DELETE',
                     })
                         .then(response => {
-                            if (response.status === 204) {
+                            if (response.ok) {
                                 loadDepartments();
                             } else {
                                 alert('Une erreur est survenue lors de la suppression du département.');
@@ -142,6 +142,11 @@
                             alert('Une erreur est survenue. Veuillez réessayer.');
                         });
                 }
+            }
+            // Function to close the "Add Department" modal
+            function closeAddModal() {
+                const modalOverlay = document.getElementById('modalOverlay');
+                modalOverlay.style.display = 'none'; // Hide the modal
             }
 
             loadDepartments();
@@ -253,7 +258,7 @@
         <footer>
             @Copyright gestionCollege 2025
         </footer>
-        <script src="/Views/js/modals.js"></script>
+        <script src="Views/js/modals.js"></script>
     </body>
 
 </html>

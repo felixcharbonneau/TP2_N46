@@ -154,28 +154,29 @@ public static function getAll($page = null, $searchValue = '')
 }
 
     public static function get($id) {
-    $stmt = DatabaseConnexion::getInstance()->prepare('
+        $stmt = DatabaseConnexion::getInstance()->prepare('
         SELECT id, nom, prenom, dateNaissance, email, dateEmbauche, createdBy, modifiedBy, idDepartement
         FROM Enseignant
-        WHERE id = :id'
-    );
-    $stmt->execute(['id' => $id]);
-    if ($stmt->rowCount() > 0) {
-        return new Teachers(
-            $stmt->fetch(\PDO::FETCH_ASSOC)['id'],
-            $stmt->fetch(\PDO::FETCH_ASSOC)['nom'],
-            $stmt->fetch(\PDO::FETCH_ASSOC)['prenom'],
-            $stmt->fetch(\PDO::FETCH_ASSOC)['email'],
-            $stmt->fetch(\PDO::FETCH_ASSOC)['dateNaissance'],
-            $stmt->fetch(\PDO::FETCH_ASSOC)['createdBy'],
-            $stmt->fetch(\PDO::FETCH_ASSOC)['modifiedBy'],
-            $stmt->fetch(\PDO::FETCH_ASSOC)['dateEmbauche'],
-            isset($row['idDepartement']) ? (int)$row['idDepartement'] : null
-        );
+        WHERE id = :id
+    ');
+        $stmt->execute(['id' => $id]);
+        if ($stmt->rowCount() > 0) {
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return new Teachers(
+                $row['id'],
+                $row['nom'],
+                $row['prenom'],
+                $row['email'],          // email avant dateNaissance
+                $row['dateNaissance'],
+                $row['dateEmbauche'],
+                $row['createdBy'] ?? 'system',
+                isset($row['idDepartement']) ? (int)$row['idDepartement'] : null,
+                $row['modifiedBy'] ?? ''
+            );
+        }
+        return false;
     }
-    return false;
 
-    }
     public static function add($nom, $prenom, $dateNaissance, $dateEmbauche, $createdBy, $idDepartement = null) {
         $stmt = DatabaseConnexion::getInstance()->prepare('
             INSERT INTO Enseignant (nom, prenom, salt,dateNaissance, email, password, dateEmbauche, createdBy, idDepartement)
@@ -199,24 +200,46 @@ public static function getAll($page = null, $searchValue = '')
 
 
     }
-public static function update($id, $nom, $prenom, $dateNaissance, $modifiedBy, $idDepartement = null) {
-    $stmt = DatabaseConnexion::getInstance()->prepare('
+    public static function update($id, $nom, $prenom, $dateNaissance, $modifiedBy, $idDepartement, $password = null) {
+        // Start building the query and params array
+        $query = '
         UPDATE Enseignant
-        SET nom = :nom, prenom = :prenom, dateNaissance = :dateNaissance, modifiedBy = :modifiedBy, idDepartement = :idDepartement
-        WHERE id = :id'
-    );
-    $stmt->bindValue(':id', $id);
-    $stmt->bindValue(':nom', $nom);
-    $stmt->bindValue(':prenom', $prenom);
-    $stmt->bindValue(':dateNaissance', $dateNaissance);
-    $stmt->bindValue(':modifiedBy', $modifiedBy);
-    if ($idDepartement) {
-        $stmt->bindValue(':idDepartement', (int)$idDepartement);
-    } else {
-        $stmt->bindValue(':idDepartement', null);
+        SET nom = :nom, prenom = :prenom, dateNaissance = :dateNaissance, modifiedBy = :modifiedBy, idDepartement = :idDepartement';
+
+        // Add password only if provided
+        if ($password !== null)
+        {
+            $query .= ', password = :password, salt = :salt';
+
+        }
+        $query .= ' WHERE id = :id';
+
+        $stmt = DatabaseConnexion::getInstance()->prepare($query);
+        if ($password !== null) {
+            $salt = bin2hex(random_bytes(8));
+            $config = require CONFIG_PATH . 'database.php';
+            $pepper = $config['pepper'];
+            $hashed_password = password_hash($password.$salt.$pepper, PASSWORD_BCRYPT);
+
+            $stmt->bindValue(':password', $hashed_password);
+            $stmt->bindValue(':salt', $salt);
+        }
+        $stmt->bindValue(':id', $id);
+        $stmt->bindValue(':nom', $nom);
+        $stmt->bindValue(':prenom', $prenom);
+        $stmt->bindValue(':dateNaissance', $dateNaissance);
+        $stmt->bindValue(':modifiedBy', $modifiedBy);
+
+        if ($idDepartement) {
+            $stmt->bindValue(':idDepartement', (int)$idDepartement);
+        } else {
+            $stmt->bindValue(':idDepartement', null, PDO::PARAM_NULL);
+        }
+
+
+        return $stmt->execute();
     }
-    return $stmt->execute();
-}
+
 
     public static function delete($id) {
         $stmt = DatabaseConnexion::getInstance()->prepare('

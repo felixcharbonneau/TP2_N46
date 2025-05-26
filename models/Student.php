@@ -97,6 +97,36 @@ public static function selectByEmail($email) {
         return $stmt->execute([$studentId, $groupId]);
     }
 
+    public static function addToGroup(int $studentId, int $groupId): bool
+    {
+        $pdo = DatabaseConnexion::getInstance();
+
+        try {
+            // Prepare the SQL statement
+            $stmt = $pdo->prepare("INSERT INTO EtudiantGroupe (idEtudiant, idGroupe) VALUES (:studentId, :groupId)");
+
+            // Bind parameters
+            $stmt->bindParam(':studentId', $studentId, \PDO::PARAM_INT);
+            $stmt->bindParam(':groupId', $groupId, \PDO::PARAM_INT);
+
+            // Execute the statement and check if it was successful
+            if ($stmt->execute()) {
+                return true;
+            } else {
+                // Log an error message if execution fails
+                error_log("Failed to add student (ID: $studentId) to group (ID: $groupId)");
+                return false;
+            }
+        } catch (PDOException $e) {
+            // Log any exceptions
+            error_log("Error adding student to group: " . $e->getMessage());
+            return false;
+        }
+    }
+
+
+
+
 
     /**
      * Vérifie les informations de connexion de l'étudiant

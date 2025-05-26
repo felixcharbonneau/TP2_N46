@@ -1,5 +1,4 @@
 <?php
-session_start();
 
 define('ROOT_PATH', dirname(__DIR__) . '/');
 define('APP_PATH', ROOT_PATH . 'app/');
@@ -8,6 +7,15 @@ define('CONTROLLERS_PATH', ROOT_PATH . 'controllers/');
 define('MODELS_PATH', ROOT_PATH . 'models/');
 define('VIEWS_PATH', ROOT_PATH . 'views/');
 define('ROUTES_PATH', ROOT_PATH . 'routes/');
+
+session_start();
+if (isset($_SESSION['created']) && time() - $_SESSION['created'] >= 1800) {
+
+    session_unset();
+    session_destroy();
+    header('Location: /Connexion?error=2');
+    exit();
+}
 
 //Chargement automatique des classes
 spl_autoload_register(function ($className) {

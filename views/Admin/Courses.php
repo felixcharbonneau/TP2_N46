@@ -9,7 +9,7 @@
 <html>
     <head>
 
-    <link rel="stylesheet" href="/Views/General.css">
+    <link rel="stylesheet" href="Views/General.css">
     <script>
         /**
          * Confirme la suppression d'un cours
@@ -32,7 +32,7 @@
     const editNumero = document.getElementById('editNumero');
     const editDescription = document.getElementById('editDescription');
     const editListbox = document.getElementById('editListbox');
-    fetch('/api/departments')
+    fetch('api/departments')
         .then(response => response.json())
         .then(data => {
             editListbox.innerHTML = '';
@@ -208,7 +208,7 @@
                                 htmlspecialchars(json_encode($cours->numero), ENT_QUOTES, 'UTF-8') . ", " . 
                                 htmlspecialchars(json_encode($cours->description), ENT_QUOTES, 'UTF-8') . ", " .
                                 htmlspecialchars(json_encode($cours->idDepartement), ENT_QUOTES, 'UTF-8') . ")'>
-                                <img src=\"/Views/Images/pen.webp\">
+                                <img src=\"Views/Images/pen.webp\">
                             </button>
                         <form class=\"actions\" method=\"POST\" action=\"courses/delete\" onsubmit=\"return confirmDelete();\">
                             <input type=\"hidden\" name=\"page\" value=\"" . htmlspecialchars($_GET['page']) . "\">
@@ -216,7 +216,7 @@
                             <input type=\"hidden\" name=\"csrf_token\" value=\"" . htmlspecialchars($deleteToken) . "\">
                             <input type=\"hidden\" name=\"query\" value=\"" . htmlspecialchars($_POST['query'] ?? '') . "\">
                             <button type=\"submit\" class=\"image-button\">
-                                <img src=\"/Views/Images/trash.webp\" alt=\"Icon\">
+                                <img src=\"Views/Images/trash.webp\" alt=\"Icon\">
                             </button>
                         </form>
                     </td>";
@@ -296,5 +296,5 @@
             @Copyright gestionCollege 2025
         </footer>
     </body>
-    <script src="/views/js/Modals.js"></script>
+    <script src="views/js/Modals.js"></script>
 </html>

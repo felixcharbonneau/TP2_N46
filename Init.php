@@ -1,11 +1,24 @@
-<!-- Fichier de génération de la bd -->
-
 <?php
-$dsn = "mysql:host=db;dbname=GestionGroupe;charset=utf8mb4";
-$database = new \PDO($dsn, "test", "test", [
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
-]);
+$host = 'localhost';
+$dbname = 'u6223134_GestionGroupe';
+$username = 'u6223134';
+$password = 'viB1Vp?@HM0K3xyE6yT$IynRd';
+$charset = 'utf8mb4';
+
+$pepper = '23jiasf98A?&S&*dsnj21ASUIDhui12';
+
+$dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+
+try {
+    $database = new PDO($dsn, $username, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
+} catch (PDOException $e) {
+    // Display error - useful for debugging, remove on production
+    echo "Connection failed: " . $e->getMessage();
+    exit;
+}
 
 $database->exec("SET FOREIGN_KEY_CHECKS = 0;");
 

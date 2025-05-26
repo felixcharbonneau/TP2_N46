@@ -14,8 +14,7 @@
 
             // Fetch departments from the API
             function fetchDepartments() {
-                fetch('/api/departments')
-                
+                fetch('api/departments')
                     .then(response => response.json())
                     .then(departments => {
                         populateDepartmentSelect(departments);
@@ -30,7 +29,7 @@ function deleteTeacher(teacherId) {
     // Ask for confirmation before deleting
     if (confirm("Êtes-vous sûr de vouloir supprimer cet enseignant ?")) {	
         // Send DELETE request to API
-        fetch(`/api/teachers/${teacherId}`, {
+        fetch(`api/teachers/${teacherId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -105,10 +104,10 @@ data.teachers.forEach(teacher => {
         <td>${teacher.email}</td>
         <td>
             <button class="open-modal edit image-button" onclick="openEditModal(${teacher.id}, '${teacher.nom}', '${teacher.prenom}', '${teacher.dateNaissance}', ${teacher.idDepartement})">
-                <img src="/Views/Images/pen.webp" alt="Edit">
+                <img src="Views/Images/pen.webp" alt="Edit">
             </button>
             <button type="submit" class="image-button" onclick="deleteTeacher(${teacher.id})">
-                <img src="/Views/Images/trash.webp" alt="Delete">
+                <img src="Views/Images/trash.webp" alt="Delete">
             </button>
         </td>`;
 
@@ -149,7 +148,7 @@ data.teachers.forEach(teacher => {
                 const page = "<?php echo isset($_GET['page']) ? $_GET['page'] : 1; ?>"; // Récupérer le numéro de page
                 const query = "<?php echo isset($_GET['query']) ? $_GET['query'] : ''; ?>"; // Récupérer la requête de recherche
             
-                let url = `/api/teachers?page=${page}`; // URL de base pour récupérer les enseignants
+                let url = `api/teachers?page=${page}`; // URL de base pour récupérer les enseignants
                 if (query) {
                     url += `&query=${encodeURIComponent(query)}`; // Ajouter la requête de recherche à l'URL
                 }
@@ -157,6 +156,9 @@ data.teachers.forEach(teacher => {
                 fetch(url)
                     .then(response => response.json())
                     .then(data => {
+                        if (data.page >= data.nbPage){
+                            document.querySelector(".next-button").disabled = true;
+                        }
                         if (data && data.teachers) {
                             showUsers(data);  // If the data has 'teachers', pass it to showUsers
                         } else {
@@ -222,7 +224,7 @@ function openEditModal(id, nom, prenom, dateNaissance, departmentId) {
              * @param {number} teacherId - L'ID de l'Enseignant à supprimer
              */
             function deleteteacher(teacherId) {
-                fetch(`/api/teachers/${teacherId}`, {
+                fetch(`api/teachers/${teacherId}`, {
                     method: 'DELETE'
                 })
                 .then(async response => {
@@ -245,47 +247,40 @@ function openEditModal(id, nom, prenom, dateNaissance, departmentId) {
                 const prenom = document.getElementById('editPrenom').value;
                 const dateNaissance = document.getElementById('editDateNaissance').value;
                 let password = null;  // Default value for password
-                    
+
                 // Check if the password input exists
                 const passwordInput = document.getElementById("editPassword");
                 if (passwordInput) {
                     password = passwordInput.value.trim() === "" ? null : passwordInput.value;
                 }
-            
+
                 const data = {
                     nom,
                     prenom,
                     dateNaissance,
+                    departement,
                     password
                 };
-            
+
                 // Update the teacher information via API
-                fetch(`/api/teachers/${id}`, {
+                fetch(`api/teachers/${id}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(data)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 204) {
-                        // Refresh the teacher data and close the modal
-                        loadteachers();
-                        closeEditteacherModal();
-                    
-                        // Clear the input fields after the update
-                        document.getElementById('editNom').value = '';
-                        document.getElementById('editPrenom').value = '';
-                        document.getElementById('editDateNaissance').value = '';
-                        if (passwordInput) {
-                            passwordInput.value = ''; // Clear password field
-                        }
-                    } else {
-                        alert(data.message || 'Unexpected error');
+                }).then(response => {
+                    if (response.status === 204) {
+                        // No content, so just resolve with empty object or whatever you prefer
+                        return {};
                     }
-                })
-                .catch(error => alert(error.message));
+                    // Otherwise try to parse JSON
+                    return response.json();
+                }).then(data => {
+                    // Handle success — if API uses 204 No Content, data is {}
+                    loadteachers();
+                    closeEditteacherModal();
+                }).catch(error => {
+                    alert('Error: ' + error.message);
+                });
             }
 
 
@@ -304,24 +299,26 @@ function openEditModal(id, nom, prenom, dateNaissance, departmentId) {
                     alert("Veuillez remplir tous les champs.");
                     return;
                 }
-                fetch('/api/teachers', {
+                fetch('api/teachers', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(data),
                 })
-                .then(data => {
-                    if (data.status === 204) {
-                        loadteachers();
-                        closeAddModal(); 
-                    } else if (data.status === 400) {
-                        alert(data.error || 'Données invalides');
-                    }else{
-                        alert(data.error || 'Une erreur est survenue lors de la création de l\'Enseignant.');
-                    }
-                })
-                .catch(error => alert(error.message));
+                    .then(response => {
+                        if (response.ok) {
+                            // Success, no content
+                            loadteachers();
+                            closeAddModal();
+                        } else if (response.status === 400) {
+                            alert('Données invalides');
+                        } else {
+                            alert('Une erreur est survenue lors de la création de l\'Enseignant.');
+                        }
+                    })
+                    .catch(error => alert(error.message));
+
             }
             function closeAddModal() {
                 const modal = document.querySelector('#modalOverlay');
@@ -348,7 +345,7 @@ function openEditModal(id, nom, prenom, dateNaissance, departmentId) {
     <div class="modal">
         <button class="close-button" id="closeModal">X</button>
         <h2>Ajouter un Enseignant</h2>
-        <form method="POST" action="/api/teachers" id="addteacherForm">
+        <form method="POST" action="api/teachers" id="addteacherForm">
             <div>
                 <label for="nom">Nom:</label>
                 <input type="text" name="nom" id="nom" placeholder="Entrez le nom de l'Enseignant" required>
@@ -450,6 +447,6 @@ function openEditModal(id, nom, prenom, dateNaissance, departmentId) {
         <footer>
             @Copyright gestionCollege 2025
         </footer>
-        <script src="/Views/js/modals.js"></script>
+        <script src="Views/js/modals.js"></script>
     </body>
 </html>

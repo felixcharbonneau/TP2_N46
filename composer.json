@@ -11,6 +11,7 @@
     },
     "require": {
         "php": "^8.0",
-        "phpunit/phpunit": "^12.1"
+        "phpunit/phpunit": "^12.1",
+      "ext-pdo": "*"
     }
 }

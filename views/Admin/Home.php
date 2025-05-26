@@ -14,7 +14,7 @@
           .catch(error => { console.log(error); });
     </script>
     <head>
-    <link rel="stylesheet" href="/Views/General.css">
+    <link rel="stylesheet" href="Views/General.css">
     </head>
     <body>
     <h1 class="titre">Acceuil</h1>

@@ -32,23 +32,26 @@ class Department{
      */
     public static function get($id) {
         $stmt = DatabaseConnexion::getInstance()->prepare('
-            SELECT id, nom, code, description, createdBy, modifiedBy
-            FROM Departement
-            WHERE id = :id'
-        );
+        SELECT id, nom, code, description, createdBy, modifiedBy
+        FROM Departement
+        WHERE id = :id
+    ');
         $stmt->execute(['id' => $id]);
+
         if ($stmt->rowCount() > 0) {
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC); // On récupère UNE seule fois la ligne
             return new Department(
-                $stmt->fetch(\PDO::FETCH_ASSOC)['id'],
-                $stmt->fetch(\PDO::FETCH_ASSOC)['nom'],
-                $stmt->fetch(\PDO::FETCH_ASSOC)['code'],
-                $stmt->fetch(\PDO::FETCH_ASSOC)['description'],
-                $stmt->fetch(\PDO::FETCH_ASSOC)['createdBy'],
-                $stmt->fetch(\PDO::FETCH_ASSOC)['modifiedBy']
+                $row['id'],
+                $row['nom'],
+                $row['code'],
+                $row['description'],
+                $row['createdBy'],
+                $row['modifiedBy']
             );
         }
         return false;
     }
+
 public static function getAll($page = null, $searchValue = '') {
     $departments = array();
     $ValuePerPage = 25;
@@ -140,4 +143,11 @@ public static function getAll($page = null, $searchValue = '') {
         $stmt->execute();
         return $stmt->fetchColumn();
     }
+
+    public static function delete(int $id): bool
+    {
+        $stmt = DatabaseConnexion::getInstance()->prepare('DELETE FROM Departement WHERE id = :id');
+        return $stmt->execute(['id' => $id]);
+    }
+
 }

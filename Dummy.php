@@ -1,11 +1,25 @@
-<!-- fichier de génération de données factices -->
 <?php
+$host = 'db';
+$dbname = 'u6223134_GestionGroupe';
+$username = 'u6223134';
+$password = '54I}[wgz!{mf';
+$charset = 'utf8mb4';
+
 $pepper = '23jiasf98A?&S&*dsnj21ASUIDhui12';
-$dsn = "mysql:host=db;dbname=GestionGroupe;charset=utf8mb4";
-$database = new \PDO($dsn, "test", "test", [
-    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
-]);
+
+$dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+
+try {
+    $database = new PDO($dsn, $username, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
+} catch (PDOException $e) {
+    // Display error - useful for debugging, remove on production
+    echo "Connection failed: " . $e->getMessage();
+    exit;
+}
+
 
 $tables = ['EtudiantGroupe', 'Groupe', 'Cours', 'Enseignant', 'Etudiant', 'Departement'];
 
@@ -25,6 +39,28 @@ try {
     echo 'Suppression de toutes les données terminée.';
 } catch (Exception $error) {
     echo 'Erreur lors de la suppression des données';
+    echo '<br>';
+    print_r($error);
+    die();
+}
+// Admin par défaut
+try {
+    $sql = "INSERT INTO Admin (nom, prenom, email, password,salt, createdBy)
+            VALUES (:nom, :prenom, :email, :password,:salt, :createdBy)";
+    $stmt = $database->prepare($sql);
+
+    $stmt->bindValue(':nom', "root");
+    $stmt->bindValue(':prenom', "root");
+    $salt = bin2hex(random_bytes(8));
+    $password = password_hash("root" . $salt . $pepper, PASSWORD_DEFAULT);
+    $stmt->bindValue(':password', $password);
+    $stmt->bindValue(':email', "root@root.com");
+    $stmt->bindValue(':createdBy', "system");
+    $stmt->bindValue(':salt', $salt);
+
+    $stmt->execute();
+} catch (Exception $error) {
+    echo 'Erreur lors de la creation de l\'admin par défaut';
     echo '<br>';
     print_r($error);
     die();
@@ -379,28 +415,6 @@ foreach ($groupIds as $groupId) {
             die();
         }
     }
-}
-// Admin par défaut
-try {
-    $sql = "INSERT INTO Admin (nom, prenom, email, password,salt, createdBy)
-            VALUES (:nom, :prenom, :email, :password,:salt, :createdBy)";
-    $stmt = $database->prepare($sql);
-
-    $stmt->bindValue(':nom', "root"); 
-    $stmt->bindValue(':prenom', "root"); 
-    $salt = bin2hex(random_bytes(8)); 
-    $password = password_hash("root" . $salt . $pepper, PASSWORD_DEFAULT);
-    $stmt->bindValue(':password', $password);
-    $stmt->bindValue(':email', "root@root.com");
-    $stmt->bindValue(':createdBy', "system");
-    $stmt->bindValue(':salt', $salt);
-
-    $stmt->execute();
-} catch (Exception $error) {
-    echo 'Erreur lors de la creation de l\'admin par défaut';
-    echo '<br>';
-    print_r($error);
-    die();
 }
 
 ?>

@@ -21,17 +21,25 @@ class ClassesController {
                     $students = \models\Student::getAll();
                     $teachers = \models\Teachers::getAll();
                     $courses = \models\Cours::getAll();
+                    if($classes){
+                        $groupIds = array_map(fn($class) => $class->id, $classes);
+
+                        $studentsByGroup = \models\Student::getStudentsInGroups($groupIds);
+                    }
+
 
                     $editToken = hash('sha256', $_SESSION['csrf_token'] . "AdminEditClassForm");
                     $deleteToken = hash('sha256', $_SESSION['csrf_token'] . "AdminDeleteClassForm");
                     $addToken = hash('sha256', $_SESSION['csrf_token'] . "AdminAddClassForm");
+                    $removeToken = hash('sha256', $_SESSION['csrf_token'] . "TeacherRemoveStudentForm");
+                    $addStudentToken = hash('sha256', $_SESSION['csrf_token'] . "TeacherAddStudentForm");
                     include_once VIEWS_PATH . 'Admin/' . 'Classes.php';
                     break;
                 case 'Teacher':
                     $removeToken = hash('sha256', $_SESSION['csrf_token'] . "TeacherRemoveStudentForm");
+                    $addStudentToken = hash('sha256', $_SESSION['csrf_token'] . "TeacherAddStudentForm");
                     $classes = \models\Classes::getAllFromTeacher($_SESSION['user_id']);
                     if ($classes) {
-                        // Extract group IDs
                         $groupIds = array_map(fn($class) => $class->id, $classes);
 
                         $studentsByGroup = \models\Student::getStudentsInGroups($groupIds);
@@ -52,7 +60,7 @@ class ClassesController {
     }
 
     public function removeStudent() {
-        if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Teacher') {
+        if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'Teacher'||$_SESSION['user_role'] === 'Admin')) {
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (
                     isset($_POST['student_id'], $_POST['group_id'], $_POST['csrf_token']) &&
@@ -63,8 +71,6 @@ class ClassesController {
 
                     if ($studentId > 0 && $groupId > 0) {
                         $removed = \models\Student::removeFromGroup($studentId, $groupId);
-
-                        // Redirect back to classes page (or wherever you want)
                         header('Location: /classes');
                         exit;
                     } else {
@@ -80,6 +86,46 @@ class ClassesController {
             require VIEWS_PATH . 'ErrorRights.php';
         }
     }
+    public function addStudent() {
+        // Check if the user is a Teacher or Admin
+        if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'Teacher' || $_SESSION['user_role'] === 'Admin')) {
+            // Check if the request method is POST
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                // Verify if the necessary parameters and CSRF token are set
+                if (
+                    isset($_POST['student_id'], $_POST['group_id'], $_POST['csrf_token']) &&
+                    \libs\Security::verifyCSRFToken($_POST['csrf_token'], "TeacherAddStudentForm")
+                ) {
+                    $studentId = intval($_POST['student_id']);
+                    $groupId = intval($_POST['group_id']);
+
+                    if ($studentId > 0 && $groupId > 0) {
+                        $added = \models\Student::addToGroup($studentId, $groupId);
+
+                        // Check if the student was successfully added
+                        if ($added) {
+                            // Redirect to the classes page or any other relevant page
+                            header('Location: /classes');
+                            exit;
+                        } else {
+                            // If the student was not added, show an error message
+                            die("Failed to add the student to the group.");
+                        }
+                    } else {
+                        die("Invalid student or group ID.");
+                    }
+                } else {
+                    die("CSRF token invalid or missing parameters.");
+                }
+            } else {
+                die("Invalid request method.");
+            }
+        } else {
+            // If the user doesn't have the required role, show an error view
+            require VIEWS_PATH . 'ErrorRights.php';
+        }
+    }
+
 
     public function add() {
         if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Admin') {
