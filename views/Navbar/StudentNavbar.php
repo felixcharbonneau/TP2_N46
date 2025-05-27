@@ -2,12 +2,13 @@
 <head>
     <title>Gestion de College</title>
     <link rel="stylesheet" href="views/css/General.css">
-    <link rel="stylesheet" href="/views/css/Navbar.css">
+    <link rel="stylesheet" href="views/css/Navbar.css">
 </head>
 <nav>
     <div id="options">
         <a class="link" href="Home">Accueil</a>
         <a class="link" href="Classes">Groupes</a>
+        <a class="link" href="Me">Mon compte</a>
     </div>
 
     <img id="icon" src="views/Images/utilisateur.svg">

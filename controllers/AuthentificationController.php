@@ -22,11 +22,16 @@ class AuthentificationController {
             session_unset();
             session_destroy();
         }
+        if (isset($_COOKIE['jwt'])) {
+            setcookie('jwt', '', time() - 3600, '/');
+            unset($_COOKIE['jwt']);
+        }
         $this->doRedirect("/");
     }
 
     public function login() : void {
         $isValid = false;
+        $jwt = null;
 
         if (isset($_POST['role'])) {
             switch ($_POST['role']) {
@@ -54,7 +59,6 @@ class AuthentificationController {
                 echo "Error during login: " . $e->getMessage();
                 $this->doExit();
             }
-
         } else {
             $isValid = false;
             if (isset($_SESSION)) {
@@ -70,9 +74,22 @@ class AuthentificationController {
                 $_SESSION['user_id'] = $user->id;
             }
             \libs\Security::generateCSRFToken();
+
+            $jwtData = [
+                'email' => $user->email,
+                'role' => $_SESSION['user_role'],
+                'id' => $_SESSION['user_id'] ?? null
+            ];
+            $jwt = \libs\Security::generateJWT($jwtData,$_SESSION['user_role']);
+
+            setcookie("jwt", $jwt, time() + 1800, "/");
+
             $this->doRedirect("/home");
         } else {
-            // Debugging failed login
+            $email = $_POST['email'] ?? 'unknown';
+            $role = $_POST['role'] ?? 'unknown';
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+            \libs\Logging::log("Tentative de connexion échouée pour: {$email}, role: {$role}", $ip);
             sleep(2);
             $this->doRedirect("/connexion?error=1");
             $this->doExit();

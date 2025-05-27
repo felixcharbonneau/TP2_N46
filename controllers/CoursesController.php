@@ -61,7 +61,7 @@ class CoursesController {
                         $nom = $_GET['nom'];
                         $description = $_GET['description'];
                         $idDepartement = intval($_GET['idDepartement']);
-                        $modifiedBy = isset($_SESSION['username']) ? $_SESSION['username'] : 'Unknown';
+                        $modifiedBy = $_SESSION['user_email'] ?? 'Unknown';
 
                         $course = \models\Cours::update($id, $numero, $nom, $description, $idDepartement, $modifiedBy);
 

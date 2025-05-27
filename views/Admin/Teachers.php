@@ -246,6 +246,7 @@ function openEditModal(id, nom, prenom, dateNaissance, departmentId) {
                 const nom = document.getElementById('editNom').value;
                 const prenom = document.getElementById('editPrenom').value;
                 const dateNaissance = document.getElementById('editDateNaissance').value;
+                const departement = document.getElementById("editDepartement").value;
                 let password = null;  // Default value for password
 
                 // Check if the password input exists
@@ -268,7 +269,7 @@ function openEditModal(id, nom, prenom, dateNaissance, departmentId) {
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(data)
                 }).then(response => {
-                    if (response.status === 204) {
+                    if (response.ok) {
                         // No content, so just resolve with empty object or whatever you prefer
                         return {};
                     }

@@ -22,7 +22,7 @@ class MeController {
                 require VIEWS_PATH . '/Teacher/Me.php';
                 break;
             case 'Student':
-                $student = \models\Teachers::get($_SESSION['user_id']);
+                $student = \models\Student::get($_SESSION['user_id']);
                 require VIEWS_PATH . '/Student/Me.php';
                 break;
         }

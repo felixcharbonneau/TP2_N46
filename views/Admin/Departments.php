@@ -6,6 +6,59 @@
     <head>
         <link rel="stylesheet" href="Views/General.css">
         <script>
+            // Function to update the department after editing
+            function updateDepartment() {
+                const id = document.getElementById('editDepartmentId').value;
+                const nom = document.getElementById('editNom').value;
+                const code = document.getElementById('editCode').value;
+                const description = document.getElementById('editDescription').value;
+
+                if (!nom || !code || !description) {
+                    alert("Veuillez remplir tous les champs.");
+                    return;
+                }
+
+                const data = { id, nom, code, description };
+
+                fetch(`api/departments/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data),
+                })
+                    .then(response => {
+                        if (response.status === 204) {
+                            loadDepartments();
+                            closeEditModal();
+                        } else {
+                            return response.json().then(data => {
+                                alert(data.error || 'Une erreur est survenue lors de la mise à jour du département.');
+                            });
+                        }
+                    })
+                    .catch(error => alert(error.message));
+            }
+
+            // Function to close the "Edit Department" modal
+            function closeEditModal() {
+                const modalOverlay = document.getElementById('editDepartmentModalOverlay');
+                modalOverlay.style.display = 'none'; // Hide the modal
+            }
+
+            // Function to open the "Edit Department" modal and populate the fields
+            function openEditModal(departmentId, departmentNom, departmentCode) {
+                // Set the input values in the edit modal
+                document.getElementById('editDepartmentId').value = departmentId;
+                document.getElementById('editNom').value = departmentNom;
+                document.getElementById('editCode').value = departmentCode;
+
+                // Show the modal
+                const editModal = document.getElementById('editDepartmentModal');
+                const modalOverlay = document.getElementById('editDepartmentModalOverlay');
+                modalOverlay.style.display = 'block'; // Show the modal
+            }
+
             function showDepartments(data) {
                 const tableBody = document.getElementById('Department-Data');
                 tableBody.innerHTML = '';
@@ -205,33 +258,31 @@
 
             </tbody>
         </table>
-        <div class="modal-overlay" id="editEtudiantModalOverlay">
-            <!-- Modal pour modifier un département -->
+        <div class="modal-overlay" id="editDepartmentModalOverlay">
+            <!-- Modal for editing department -->
             <div class="modal">
                 <button class="close-button" id="closeEditDepartmentModal">X</button>
                 <h2>Modifier le département</h2>
-                <div class="form">
-                <input type="hidden" name="id" id="editEtudiantId" value="">
-                <div>
+                <form id="editDepartmentForm">
+                    <input type="hidden" name="id" id="editDepartmentId" value="">
+                    <div>
                         <label for="editNom">Nom:</label>
-                        <input type="text" name="nom" id="editNom" placeholder="Entrez le nom" required>
+                        <input type="text" name="nom" id="editNom" placeholder="Entrez le nom du département" required>
                     </div>
                     <div>
-                        <label for="editPrenom">Prénom:</label>
-                        <input type="text" name="prenom" id="editPrenom" placeholder="Entrez le prénom" required>
+                        <label for="editCode">Code:</label>
+                        <input type="text" name="code" id="editCode" placeholder="Entrez le code du département" required>
                     </div>
                     <div>
-                        <label for="editDateNaissance">Date de naissance:</label>
-                        <input type="date" name="dateNaissance" id="editDateNaissance" required>
+                        <label for="editDescription">Description:</label>
+                        <textarea name="description" id="editDescription" placeholder="Entrez la description du département" required></textarea>
                     </div>
-                    <div>
-                        <label for="editpassword">Mot de passe:</label>
-                        <input type="text" name="password">
-                    </div>
-                    <button onclick="updateStudent()" class="submit-button" style="margin-top: 15px;">Mettre à jour l'étudiant</button>
-                </div>
+                    <button type="button" class="submit-button" onclick="updateDepartment()">Mettre à jour le département</button>
+                </form>
+
             </div>
         </div>
+
         <div class="pagination-nav">
             <form method="GET" action="departments" style="display:inline;">
             <?php if (isset($_GET['query']) && !empty($_GET['query'])): ?>

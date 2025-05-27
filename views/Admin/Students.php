@@ -205,7 +205,7 @@
                     body: JSON.stringify(data),
                 })
                 .then(data => {
-                    if (data.status === 204) {
+                    if (data.ok) {
                         loadStudents();
                         closeAddModal(); 
                     } else if (data.status === 400) {

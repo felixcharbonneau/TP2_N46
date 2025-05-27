@@ -149,5 +149,19 @@ public static function getAll($page = null, $searchValue = '') {
         $stmt = DatabaseConnexion::getInstance()->prepare('DELETE FROM Departement WHERE id = :id');
         return $stmt->execute(['id' => $id]);
     }
+    public static function update($id, $data) {
+        $pdo = DatabaseConnexion::getInstance();
+        $sql = "UPDATE Departement SET nom = :nom, code = :code, description = :description WHERE id = :id";
+        $stmt = $pdo->prepare($sql);
+        $result = $stmt->execute([
+            ':nom' => $data['nom'] ?? null,
+            ':code' => $data['code'] ?? null,
+            ':description' => $data['description'] ?? null,
+            ':id' => $id,
+        ]);
+
+        return $result; // true ou false
+    }
+
 
 }

@@ -1,5 +1,6 @@
 <?php
 namespace controllers;
+use Firebase\JWT\JWT;
 use models\Teachers;
 
 class TeacherApi {
@@ -16,15 +17,32 @@ class TeacherApi {
      * @return string JSON contenant la liste des enseignants
      */
     public function getTeachers($page = 1) {
+        $jwt = \libs\Security::getJwt();
+        $decoded = \libs\Security::validateJwt($jwt);
+        if (!$decoded || !isset($decoded['role'])) {
+            header('HTTP/1.1 401 Unauthorized');
+            return json_encode(['error' => 'Unauthorized access.']);
+        }
+
+        $allowedRoles = ['Admin', 'Teacher', 'Student'];
+        if (!in_array($decoded['role'], $allowedRoles)) {
+            header('HTTP/1.1 403 Forbidden');
+            return json_encode(['error' => 'Forbidden: Access denied.']);
+        }
+
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $query = isset($_GET['query']) ? $_GET['query'] : '';
-        if($query) {
+
+        // Fetch teachers
+        if ($query) {
             $teachers = Teachers::getAll($page, $query);
         } else {
             $teachers = Teachers::getAll($page);
         }
+
         return json_encode($teachers);
     }
+
 
     /**
      * Récupère un Enseignant par son ID
@@ -32,6 +50,21 @@ class TeacherApi {
      * @return string JSON contenant les informations de l'enseignant
      */
     public function getTeacher($id) {
+        $jwt = \libs\Security::getJwt();
+        $decoded = \libs\Security::validateJwt($jwt);
+        if (!$decoded || !isset($decoded['role'])) {
+            header('HTTP/1.1 401 Unauthorized');
+            return json_encode(['error' => 'Unauthorized access.']);
+        }
+
+        $allowedRoles = ['Admin', 'Teacher', 'Student'];
+        if (!in_array($decoded['role'], $allowedRoles)) {
+            header('HTTP/1.1 403 Forbidden');
+            return json_encode(['error' => 'Forbidden: Access denied.']);
+        }
+
+
+
         $teacher = Teachers::get($id);
         if (!$teacher) {
             header('HTTP/1.1 404 Not Found');
@@ -46,6 +79,19 @@ class TeacherApi {
      * @return string JSON contenant les informations de l'enseignant créé
      */
     public function createTeacher() {
+        $jwt = \libs\Security::getJwt();
+        $decoded = \libs\Security::validateJwt($jwt);
+        if (!$decoded || !isset($decoded['role'])) {
+            header('HTTP/1.1 401 Unauthorized');
+            return json_encode(['error' => 'Unauthorized access.']);
+        }
+
+        $allowedRoles = ['Admin'];
+        if (!in_array($decoded['role'], $allowedRoles)) {
+            header('HTTP/1.1 403 Forbidden');
+            return json_encode(['error' => 'Forbidden: Access denied.']);
+        }
+
         $data = json_decode(file_get_contents("php://input"), true);
 
         if (!isset($data['nom']) || !isset($data['prenom']) || !isset($data['dateNaissance'])) {
@@ -77,6 +123,19 @@ class TeacherApi {
      * @return string JSON contenant le résultat de la mise à jour
      */
     public function updateTeacher($id) {
+        $jwt = \libs\Security::getJwt();
+        $decoded = \libs\Security::validateJwt($jwt);
+        if (!$decoded || !isset($decoded['role'])) {
+            header('HTTP/1.1 401 Unauthorized');
+            return json_encode(['error' => 'Unauthorized access.']);
+        }
+
+        $allowedRoles = ['Admin'];
+        if (!in_array($decoded['role'], $allowedRoles)) {
+            header('HTTP/1.1 403 Forbidden');
+            return json_encode(['error' => 'Forbidden: Access denied.']);
+        }
+
         $data = json_decode(file_get_contents('php://input'), true);
 
         if (!isset($data['nom']) || !isset($data['prenom']) || !isset($data['dateNaissance'])
@@ -96,11 +155,10 @@ class TeacherApi {
         );
 
         if (!$teacher) {
-            header('HTTP/1.1 404 Not Found');
+            header('HTTP/1.1 400 Bad request');
             echo json_encode(['error' => 'Erreur lors de la mise à jour de l\'enseignant']);
             exit;
         }
-
         header('Content-Type: application/json');
         // On retourne les données mises à jour (tableau) avec 200 OK
         echo json_encode($teacher);
@@ -114,6 +172,18 @@ class TeacherApi {
      * @return string JSON contenant le résultat de la suppression
      */
     public function deleteTeacher($id) {
+        $jwt = \libs\Security::getJwt();
+        $decoded = \libs\Security::validateJwt($jwt);
+        if (!$decoded || !isset($decoded['role'])) {
+            header('HTTP/1.1 401 Unauthorized');
+            return json_encode(['error' => 'Unauthorized access.']);
+        }
+
+        $allowedRoles = ['Admin'];
+        if (!in_array($decoded['role'], $allowedRoles)) {
+            header('HTTP/1.1 403 Forbidden');
+            return json_encode(['error' => 'Forbidden: Access denied.']);
+        }
         $teacher = Teachers::delete($id);
 
         if (!$teacher) {

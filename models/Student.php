@@ -259,13 +259,12 @@ public static function getAll($page = null, $searchValue = '')
         $da = self::generateUniqueDa(DatabaseConnexion::getInstance());
         $email = $da . "@etu.cegep-lanaudiere.qc.ca";
         $date = new \DateTime($data['dateNaissance']);  
-        $formatted = $date->format('Y-m-d');    
-        $password = password_hash($date->format('Y') . 
-                                  $date->format('m') . 
-                                  $date->format('d'), PASSWORD_DEFAULT);
+        $formatted = $date->format('Y-m-d');
+        $password = $date->format('Y') . $date->format('m') . $date->format('d'); // e.g. "20250205"
+
         $stmt = DatabaseConnexion::getInstance()->prepare('
-            INSERT INTO Etudiant (nom, prenom, email, dateNaissance, createdBy, modifiedBy, da, dateInscription,password)
-            VALUES (:nom, :prenom, :email, :dateNaissance, :createdBy, NULL, :da, :dateInscription, :password)'
+            INSERT INTO Etudiant (nom, prenom, email, dateNaissance, createdBy, modifiedBy, da, dateInscription,password,salt)
+            VALUES (:nom, :prenom, :email, :dateNaissance, :createdBy, NULL, :da, :dateInscription, :password,:salt)'
         );
         $stmt->bindValue(':nom', $data['nom']);
         $stmt->bindValue(':prenom', $data['prenom']);
@@ -274,7 +273,13 @@ public static function getAll($page = null, $searchValue = '')
         $stmt->bindValue(':da', $da);
         $stmt->bindValue(':createdBy', "system"); ///a modifier
         $stmt->bindValue(':dateInscription', date('Y-m-d H:i:s'));
-        $stmt->bindValue(':password', $password);
+        $salt = bin2hex(random_bytes(8));
+        $config = require CONFIG_PATH . 'database.php';
+        $pepper = $config['pepper'];
+        $hashed_password = password_hash($password.$salt.$pepper, PASSWORD_BCRYPT);
+
+        $stmt->bindValue(':password', $hashed_password);
+        $stmt->bindValue(':salt', $salt);
 
         error_log("Nom: " . $data['nom']);
         error_log("Prénom: " . $data['prenom']);
@@ -313,7 +318,7 @@ public static function getAll($page = null, $searchValue = '')
             dateNaissance = :dateNaissance,
             modifiedBy = :modifiedBy';
         if (!empty($data['password'])) {
-            $sql .= ', password = :password';
+            $sql .= ', password = :password, salt = :salt';
         }
         $sql .= ' WHERE id = :id';
 
@@ -324,7 +329,13 @@ public static function getAll($page = null, $searchValue = '')
         $stmt->bindValue(':modifiedBy', "system"); ///a modifier
         $stmt->bindValue(':id', $id, \PDO::PARAM_INT);
         if (!empty($data['password'])) {
-            $stmt->bindValue(':password', password_hash($data['password'], PASSWORD_DEFAULT)); 
+            $salt = bin2hex(random_bytes(8));
+            $config = require CONFIG_PATH . 'database.php';
+            $pepper = $config['pepper'];
+            $hashed_password = password_hash($data['password'].$salt.$pepper, PASSWORD_BCRYPT);
+
+            $stmt->bindValue(':password', $hashed_password);
+            $stmt->bindValue(':salt', $salt);
         }
 
         return $stmt->execute();

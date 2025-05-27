@@ -2,6 +2,7 @@
 namespace models;
 use models\DatabaseConnexion;
 use libs\Security;
+use PDO;
 
 /**
  * Classe représentant un enseignant
@@ -178,28 +179,54 @@ public static function getAll($page = null, $searchValue = '')
     }
 
     public static function add($nom, $prenom, $dateNaissance, $dateEmbauche, $createdBy, $idDepartement = null) {
-        $stmt = DatabaseConnexion::getInstance()->prepare('
-            INSERT INTO Enseignant (nom, prenom, salt,dateNaissance, email, password, dateEmbauche, createdBy, idDepartement)
-            VALUES (:nom, :prenom, :salt,:dateNaissance, :email, :password, :dateEmbauche, :createdBy, :idDepartement)'
-        );
-        $salt = bin2hex(random_bytes(8)); 
-        $stmt->bindValue(':salt', $salt);
-        $stmt->bindValue(':email', $nom . '.' . $prenom . '@cegep-lanaudiere.qc.ca');
-        $stmt->bindValue(':nom', $nom);
-        $stmt->bindValue(':prenom', $prenom);
-        $stmt->bindValue(':dateNaissance', $dateNaissance);
-        $stmt->bindValue(':password', password_hash("password", PASSWORD_BCRYPT));
-        $stmt->bindValue(':dateEmbauche', $dateEmbauche);
-        $stmt->bindValue(':createdBy', $createdBy);
-        if ($idDepartement) {
-            $stmt->bindValue(':idDepartement', (int)$idDepartement);
-        } else {
-            $stmt->bindValue(':idDepartement', null);
+        try {
+            $pdo = DatabaseConnexion::getInstance();
+
+            // Generate base email
+            $baseEmail = strtolower($nom . '.' . $prenom . '@cegep-lanaudiere.qc.ca');
+            $email = $baseEmail;
+            $suffix = 1;
+
+            $checkStmt = $pdo->prepare('SELECT COUNT(*) FROM Enseignant WHERE email = :email');
+            do {
+                $checkStmt->bindValue(':email', $email);
+                $checkStmt->execute();
+                if ($checkStmt->fetchColumn() > 0) {
+                    $email = strtolower($nom . '.' . $prenom . $suffix . '@cegep-lanaudiere.qc.ca');
+                    $suffix++;
+                } else {
+                    break;
+                }
+            } while (true);
+            $stmt = $pdo->prepare('
+            INSERT INTO Enseignant (nom, prenom, salt, dateNaissance, email, password, dateEmbauche, createdBy, idDepartement)
+            VALUES (:nom, :prenom, :salt, :dateNaissance, :email, :password, :dateEmbauche, :createdBy, :idDepartement)'
+            );
+
+            $salt = bin2hex(random_bytes(8));
+            $config = require CONFIG_PATH . 'database.php';
+            $pepper = $config['pepper'];
+            $hashed_password = password_hash("password" . $salt . $pepper, PASSWORD_BCRYPT);
+
+            $stmt->bindValue(':nom', $nom);
+            $stmt->bindValue(':prenom', $prenom);
+            $stmt->bindValue(':salt', $salt);
+            $stmt->bindValue(':dateNaissance', $dateNaissance);
+            $stmt->bindValue(':email', $email);
+            $stmt->bindValue(':password', $hashed_password);
+            $stmt->bindValue(':dateEmbauche', $dateEmbauche);
+            $stmt->bindValue(':createdBy', $createdBy);
+            $stmt->bindValue(':idDepartement', $idDepartement ?? null, PDO::PARAM_INT);
+
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            // Log or display error
+            error_log("PDO Error in Enseignant::add(): " . $e->getMessage());
+            die("An error occurred while adding the teacher: " . $e->getMessage()); // For dev only — remove or disable in production
         }
-        return $stmt->execute();
-
-
     }
+
+
     public static function update($id, $nom, $prenom, $dateNaissance, $modifiedBy, $idDepartement, $password = null) {
         // Start building the query and params array
         $query = '

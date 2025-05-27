@@ -12,6 +12,18 @@ class DepartmentsApi {
         header('Access-Control-Allow-Headers: Content-Type');
     }
     public function getDepartments(){
+        $jwt = \libs\Security::getJwt();
+        $decoded = \libs\Security::validateJwt($jwt);
+        if (!$decoded || !isset($decoded['role'])) {
+            header('HTTP/1.1 401 Unauthorized');
+            return json_encode(['error' => 'Unauthorized access.']);
+        }
+
+        $allowedRoles = ['Admin', 'Teacher', 'Student'];
+        if (!in_array($decoded['role'], $allowedRoles)) {
+            header('HTTP/1.1 403 Forbidden');
+            return json_encode(['error' => 'Forbidden: Access denied.']);
+        }
         $query = isset($_GET['query']) ? $_GET['query'] : '';
         $page = isset($_GET['page']) ? $_GET['page'] : null;
         $departments = Department::getAll($page, $query);
@@ -19,10 +31,34 @@ class DepartmentsApi {
         return json_encode($departments);
     }
     public function getDepartment($id){
+        $jwt = \libs\Security::getJwt();
+        $decoded = \libs\Security::validateJwt($jwt);
+        if (!$decoded || !isset($decoded['role'])) {
+            header('HTTP/1.1 401 Unauthorized');
+            return json_encode(['error' => 'Unauthorized access.']);
+        }
+
+        $allowedRoles = ['Admin', 'Teacher', 'Student'];
+        if (!in_array($decoded['role'], $allowedRoles)) {
+            header('HTTP/1.1 403 Forbidden');
+            return json_encode(['error' => 'Forbidden: Access denied.']);
+        }
         $department = Department::get($id);
         return json_encode($department);
     }
     public function createDepartment(){
+        $jwt = \libs\Security::getJwt();
+        $decoded = \libs\Security::validateJwt($jwt);
+        if (!$decoded || !isset($decoded['role'])) {
+            header('HTTP/1.1 401 Unauthorized');
+            return json_encode(['error' => 'Unauthorized access.']);
+        }
+
+        $allowedRoles = ['Admin', 'Teacher', 'Student'];
+        if (!in_array($decoded['role'], $allowedRoles)) {
+            header('HTTP/1.1 403 Forbidden');
+            return json_encode(['error' => 'Forbidden: Access denied.']);
+        }
         $data = json_decode(file_get_contents('php://input'), true);
         if($data === null){
             header('HTTP/1.1 400 Bad Request');
@@ -49,6 +85,19 @@ class DepartmentsApi {
         }
     }
     public function updateDepartment($id){
+        /*
+        $jwt = \libs\Security::getJwt();
+        $decoded = \libs\Security::validateJwt($jwt);
+        if (!$decoded || !isset($decoded['role'])) {
+            header('HTTP/1.1 401 Unauthorized');
+            return json_encode(['error' => 'Unauthorized access.']);
+        }
+        $allowedRoles = ['Admin', 'Teacher', 'Student'];
+        if (!in_array($decoded['role'], $allowedRoles)) {
+            header('HTTP/1.1 403 Forbidden');
+            return json_encode(['error' => 'Forbidden: Access denied.']);
+        }
+        */
         $data = json_decode(file_get_contents('php://input'), true);
         if (!isset($data['nom']) || !isset($data['code']) || !isset($data['description'])) {
             header('HTTP/1.1 400 Bad Request');
@@ -68,6 +117,18 @@ class DepartmentsApi {
         }
     }
     public function deleteDepartment($id){
+        $jwt = \libs\Security::getJwt();
+        $decoded = \libs\Security::validateJwt($jwt);
+        if (!$decoded || !isset($decoded['role'])) {
+            header('HTTP/1.1 401 Unauthorized');
+            return json_encode(['error' => 'Unauthorized access.']);
+        }
+
+        $allowedRoles = ['Admin', 'Teacher', 'Student'];
+        if (!in_array($decoded['role'], $allowedRoles)) {
+            header('HTTP/1.1 403 Forbidden');
+            return json_encode(['error' => 'Forbidden: Access denied.']);
+        }
         $department = Department::delete($id);
         if (!$department) {
             header('HTTP/1.1 404 Not Found');

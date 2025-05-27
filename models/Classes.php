@@ -164,12 +164,19 @@ class Classes{
         ]);
         return $stmt->rowCount() > 0;
     }
-    public static function getAllFromTeacher($teacherID){
-        $stmt = DatabaseConnexion::getInstance()->prepare('SELECT id,numero,nom,description,idCours,idEnseignant,createdBy,modifiedBy
-        FROM Groupe WHERE idEnseignant = :teacherId');
-        $stmt->bindValue(':teacherId', $teacherID, \PDO::PARAM_INT);
+    public static function getAllFromStudent($user_id)
+    {
+        $stmt = DatabaseConnexion::getInstance()->prepare('
+        SELECT g.id, g.numero, g.nom, g.description, g.idCours, g.idEnseignant, g.createdBy, g.modifiedBy
+        FROM Groupe g
+        INNER JOIN EtudiantGroupe eg ON g.id = eg.idGroupe
+        WHERE eg.idEtudiant = :studentId
+    ');
+        $stmt->bindValue(':studentId', $user_id, \PDO::PARAM_INT);
         $stmt->execute();
+
         if ($stmt->rowCount() > 0) {
+            $classes = [];
             while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
                 $classes[] = new Classes(
                     $row['id'],
@@ -186,5 +193,6 @@ class Classes{
         }
         return false;
     }
+
 
 }
