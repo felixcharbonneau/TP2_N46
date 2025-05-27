@@ -6,11 +6,23 @@ use models\DatabaseConnexion;
 
 define('CSRF_TOKEN_NAME', 'csrf_token');
 
+/**
+ * Fonctions utilitaires de sécurité
+ */
 class Security {
-
+    /**
+     * Génération de token aléatoire
+     * @param $length taille du token
+     * @return string
+     * @throws \Random\RandomException
+     */
     public static function generateToken($length = 32) {
         return bin2hex(random_bytes($length));
     }
+
+    /**
+     * Optention du token jwt
+     */
     public static function getJwt() {
         if (isset($_COOKIE['jwt'])) {
             $jwt = $_COOKIE['jwt'];
@@ -21,18 +33,34 @@ class Security {
         return false;
     }
 
+    /**
+     * Vérification d'un mot de passe
+     * @param $passw a vérifier
+     * @param $salt correspondant au mot de passe
+     * @param $storedHash mot de passe attendu
+     * @return bool vrai si le mot de passe est valide
+     */
     public static function verifyPassword($passw, $salt,$storedHash) {
         $config = require CONFIG_PATH . 'database.php';
         $pepper = $config['pepper'];
         return password_verify($passw . $salt . $pepper, $storedHash);
     }
 
+    /**
+     * Génération de token CSRF
+     */
     public static function generateCSRFToken() {
         $token = self::generateToken();
         $_SESSION[CSRF_TOKEN_NAME] = $token;
         return $token;
     }
 
+    /**
+     * Vérification d'un token CSRF
+     * @param $token a vérifier
+     * @param $constant constante propre a un formulaire précis
+     * @return bool si le token est valide
+     */
     public static function verifyCSRFToken($token, $constant) {
         if (!isset($_SESSION[CSRF_TOKEN_NAME])) {
             return false;
@@ -44,10 +72,21 @@ class Security {
         return hash_equals($stored, $token);
     }
 
+    /**
+     * Encodage en base 64
+     * @param $data a encoder
+     * @return string encodé en base 64
+     */
     public static function base64UrlEncode($data) {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 
+    /**
+     * Génération de Json Web Token
+     * @param $data données propre au token
+     * @param $role role attribué au token
+     * @return string token généré
+     */
     public static function generateJWT($data, $role) {
         $config = require CONFIG_PATH . 'database.php';
         $secretKey = $config['secretKey'];
@@ -73,7 +112,11 @@ class Security {
     }
 
 
-
+    /**
+     * Décodage de la base 64
+     * @param $data encodé en base 64
+     * @return false|string décodé
+     */
     public static function base64UrlDecode($data) {
         $remainder = strlen($data) % 4;
         if ($remainder) {
@@ -83,6 +126,11 @@ class Security {
         return base64_decode(strtr($data, '-_', '+/'));
     }
 
+    /**
+     * Validation d'un token JWT
+     * @param $jwt a vérifier
+     * @return false|mixed|null
+     */
     public static function validateJWT($jwt) {
         $config = require CONFIG_PATH . 'database.php';
         $secretKey = $config['secretKey'];

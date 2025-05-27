@@ -104,10 +104,10 @@ data.teachers.forEach(teacher => {
         <td>${teacher.email}</td>
         <td>
             <button class="open-modal edit image-button" onclick="openEditModal(${teacher.id}, '${teacher.nom}', '${teacher.prenom}', '${teacher.dateNaissance}', ${teacher.idDepartement})">
-                <img src="Views/Images/pen.webp" alt="Edit">
+                <img src="views/Images/pen.webp" alt="Edit">
             </button>
             <button type="submit" class="image-button" onclick="deleteTeacher(${teacher.id})">
-                <img src="Views/Images/trash.webp" alt="Delete">
+                <img src="views/Images/trash.webp" alt="Delete">
             </button>
         </td>`;
 

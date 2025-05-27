@@ -9,7 +9,7 @@ use PDO;
  */
 class Teachers extends User {
     public string $dateEmbauche;//<la date d'embauche de l'enseignant
-    public ?int $idDepartement;
+    public ?int $idDepartement;//< id du département de l'enseignant
 
     public function __construct(
         int $id,
@@ -81,6 +81,12 @@ public static function selectByEmail($email) {
         return false;
     }
 
+    /**
+     * Obtention de tous les enseignants
+     * @param $page des enseignants a rechercher
+     * @param $searchValue valeur de recherche
+     * @return array
+     */
 public static function getAll($page = null, $searchValue = '')
 {
     $teachers = array();
@@ -154,6 +160,11 @@ public static function getAll($page = null, $searchValue = '')
     ];
 }
 
+    /**
+     * OBtention d'un seul enseignant
+     * @param $id de l'enseignant a obtenir
+     * @return false|Teachers
+     */
     public static function get($id) {
         $stmt = DatabaseConnexion::getInstance()->prepare('
         SELECT id, nom, prenom, dateNaissance, email, dateEmbauche, createdBy, modifiedBy, idDepartement
@@ -178,6 +189,17 @@ public static function getAll($page = null, $searchValue = '')
         return false;
     }
 
+    /**
+     * Ajout d'un enseignant
+     * @param $nom du nouvel enseignant
+     * @param $prenom du nouvel enseignant
+     * @param $dateNaissance du nouvel enseignant
+     * @param $dateEmbauche du nouvel enseignant
+     * @param $createdBy du nouvel enseignant
+     * @param $idDepartement du nouvel enseignant
+     * @return bool|void
+     * @throws \Random\RandomException
+     */
     public static function add($nom, $prenom, $dateNaissance, $dateEmbauche, $createdBy, $idDepartement = null) {
         try {
             $pdo = DatabaseConnexion::getInstance();
@@ -226,7 +248,18 @@ public static function getAll($page = null, $searchValue = '')
         }
     }
 
-
+    /**
+     * Mise a jour d'un enseignant
+     * @param $id de l'enseignant mis a jours
+     * @param $nom de l'enseignant mis a jours
+     * @param $prenom de l'enseignant mis a jours
+     * @param $dateNaissance de l'enseignant mis a jours
+     * @param $modifiedBy de l'enseignant mis a jours
+     * @param $idDepartement de l'enseignant mis a jours
+     * @param $password de l'enseignant mis a jours
+     * @return bool
+     * @throws \Random\RandomException
+     */
     public static function update($id, $nom, $prenom, $dateNaissance, $modifiedBy, $idDepartement, $password = null) {
         // Start building the query and params array
         $query = '
@@ -267,7 +300,11 @@ public static function getAll($page = null, $searchValue = '')
         return $stmt->execute();
     }
 
-
+    /**
+     * Suppression d'un enseignant
+     * @param $id de l'enseignant a supprimer
+     * @return bool
+     */
     public static function delete($id) {
         $stmt = DatabaseConnexion::getInstance()->prepare('
             DELETE FROM Enseignant

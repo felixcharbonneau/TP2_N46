@@ -1,22 +1,32 @@
 <?php
 
 namespace controllers;
-
+/**
+ * Controleur d'authentification
+ */
 class AuthentificationController {
 
 
     public function __construct() {
     }
 
+    /**
+     * Méthode que j'ai extraite pour permettre mes tests louche direct dans la bd
+     */
     protected function doExit() {
         exit();
     }
-
+    /**
+     * Méthode que j'ai extraite pour permettre mes tests louche direct dans la bd
+     */
     protected function doRedirect(string $url) {
         header("Location: $url");
         $this->doExit();
     }
 
+    /**
+     * Deconnexion d'un utilisateur
+     */
     public function disconnect() {
         if (isset($_SESSION)) {
             session_unset();
@@ -29,6 +39,9 @@ class AuthentificationController {
         $this->doRedirect("/");
     }
 
+    /**
+     * Connexion d'un utilisateur
+     */
     public function login() : void {
         $isValid = false;
         $jwt = null;

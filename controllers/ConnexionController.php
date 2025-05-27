@@ -1,6 +1,8 @@
 <?php
 namespace controllers;
-
+/**
+ * Controlleur pour la page de connexion
+ */
 class ConnexionController {
     public function __construct() {
 

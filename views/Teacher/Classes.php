@@ -79,7 +79,7 @@
                                     <input type="hidden" name="group_id" value="<?= htmlspecialchars($class->id) ?>">
                                     <input type="hidden" name="csrf_token" value="<?php echo isset($removeToken) ? htmlspecialchars($removeToken) : ''; ?>">
                                     <button class="image-button" type="submit" onclick="return confirm('Supprimer cet étudiant du groupe ?');">
-                                        <img src="Views/images/trash.webp" alt="Supprimer" class="delete-icon">
+                                        <img src="views/images/trash.webp" alt="Supprimer" class="delete-icon">
                                     </button>
                                 </form>
                             </li>

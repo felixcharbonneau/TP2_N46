@@ -22,7 +22,12 @@ class Cours{
         $this->createdBy = $createdBy;
         $this->modifiedBy = $modifiedBy;
     }
-    
+
+    /**
+     * Obtention d'un cours
+     * @param $id du cours a obtenir
+     * @return false|Cours
+     */
    public static function get($id) {
         $stmt = DatabaseConnexion::getInstance()->prepare('
             SELECT id, numero, nom, description, idDepartement, createdBy, modifiedBy
@@ -43,6 +48,13 @@ class Cours{
         }
         return false;
     }
+
+    /**
+     * Obtention de tous les cours
+     * @param $page a prendre
+     * @param $searchValue valeur de recherche
+     * @return array|false
+     */
 public static function getAll($page = null, $searchValue = '') {
     $cours = array();
     $ValuePerPage = 25;
@@ -86,6 +98,16 @@ public static function getAll($page = null, $searchValue = '') {
     return !empty($cours) ? $cours : false;
 }
 
+    /**
+     * Mise a jour d'un cours
+     * @param int $id du cours a modifier
+     * @param string $numero nouveau numero
+     * @param string $nom nouveau nom
+     * @param string $description nouvelle description
+     * @param int|null $idDepartement id du nouveau département
+     * @param string $modifiedBy responsable de la modification
+     * @return bool
+     */
     public static function update(int $id, string $numero, string $nom, string $description, ?int $idDepartement, string $modifiedBy) {
         $stmt = DatabaseConnexion::getInstance()->prepare('
             UPDATE Cours
@@ -102,6 +124,16 @@ public static function getAll($page = null, $searchValue = '') {
         ]);
         return $stmt->rowCount() > 0;
     }
+
+    /**
+     * Ajout d'un nouveau cours
+     * @param $nom du nouveau cours
+     * @param $numero du nouveau cours
+     * @param $description du nouveau cours
+     * @param $idDepartement du nouveau cours
+     * @param $createdBy créateur du nouveau cours
+     * @return bool
+     */
     public static function add($nom, $numero, $description, $idDepartement, $createdBy) {
         $stmt = DatabaseConnexion::getInstance()->prepare('
             INSERT INTO Cours (numero, nom, description, idDepartement, createdBy)
@@ -116,6 +148,12 @@ public static function getAll($page = null, $searchValue = '') {
         ]);
         return $stmt->rowCount() > 0;
     }
+
+    /**
+     * Suppression d'un cours
+     * @param $id du cours a supprimer
+     * @return bool succes de la requete
+     */
     public static function delete($id) {
         $stmt = DatabaseConnexion::getInstance()->prepare('
             DELETE FROM Cours

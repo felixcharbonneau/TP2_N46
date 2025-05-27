@@ -39,6 +39,10 @@ class CoursesController {
             require VIEWS_PATH . 'ErrorRights.php';
         }
     }
+
+    /**
+     * Mis a jours d'un cours
+     */
     public function edit() {
         if(isset($_SESSION['user_role'])) {
             switch($_SESSION['user_role']){
@@ -67,6 +71,10 @@ class CoursesController {
 
                         header('Location: /Courses?page=' . $_GET['page']);
                     }else{
+                        $message = "Jeton CSRF invalide détecté dans AdminEditCourseForm par l'utilisateur " . ($_SESSION['user_email'] ?? 'inconnu') . " depuis l'IP " . ($_SERVER['REMOTE_ADDR'] ?? 'inconnu');
+                        \libs\Logging::log($message);
+
+                        error_log('Erreur : Jeton CSRF invalide ou données manquantes.');
                         die('Error: Token CSRF invalide.');
                     }
                     break;
@@ -83,6 +91,10 @@ class CoursesController {
             require VIEWS_PATH . 'ErrorRights.php';
         }
     }
+
+    /**
+     * Ajout d'un cours
+     */
     public function add() {
         if (isset($_SESSION['user_role'])) {
             switch ($_SESSION['user_role']) {
@@ -110,6 +122,10 @@ class CoursesController {
 
                         header('Location: /Courses');
                     } else {
+                        $message = "Jeton CSRF invalide détecté dans AdminAddCourseForm par l'utilisateur " . ($_SESSION['user_email'] ?? 'inconnu') . " depuis l'IP " . ($_SERVER['REMOTE_ADDR'] ?? 'inconnu');
+                        \libs\Logging::log($message);
+
+                        error_log('Erreur : Jeton CSRF invalide ou données manquantes.');
                         die('Error: Token CSRF invalide.');
                     }
                     break;
@@ -126,6 +142,10 @@ class CoursesController {
             require VIEWS_PATH . 'ErrorRights.php';
         }
     }
+
+    /**
+     * Suppression d'un cours
+     */
     public function delete() {
         if (isset($_SESSION['user_role'])) {
             switch ($_SESSION['user_role']) {
@@ -138,6 +158,10 @@ class CoursesController {
                         $course = \models\Cours::delete($id);
                         header('Location: /Courses?page=' . $_POST['page']);
                     } else {
+                        $message = "Jeton CSRF invalide détecté dans AdminDeleteCourseForm par l'utilisateur " . ($_SESSION['user_email'] ?? 'inconnu') . " depuis l'IP " . ($_SERVER['REMOTE_ADDR'] ?? 'inconnu');
+                        \libs\Logging::log($message);
+
+                        error_log('Erreur : Jeton CSRF invalide ou données manquantes.');
                         die('Error: Token CSRF invalide.');
                     }
                     break;

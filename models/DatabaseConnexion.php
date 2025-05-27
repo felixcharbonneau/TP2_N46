@@ -5,8 +5,12 @@ use PDO;
  * Classe de connexion à la base de données
  */
 class DatabaseConnexion{
-    public static $instance = null;
-    private $pdo;
+    public static $instance = null;//< instance de la connexion
+    private $pdo;//< objet pdo
+
+    /**
+     * Constructeur
+     */
     public function __construct(){
         $config = require 'config/database.php';
         try {

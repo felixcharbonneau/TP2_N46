@@ -1,6 +1,8 @@
 <?php
 namespace models;
-
+/**
+ * Modele des départements
+ */
 class Department{
     public int $id;//<l'identifiant du département
     public string $nom;//<le nom du département
@@ -52,6 +54,12 @@ class Department{
         return false;
     }
 
+    /**
+     * Obtention de tous les départements
+     * @param $page des départements a obtenir
+     * @param $searchValue valeur de la recherche
+     * @return array|array[]
+     */
 public static function getAll($page = null, $searchValue = '') {
     $departments = array();
     $ValuePerPage = 25;
@@ -123,6 +131,14 @@ public static function getAll($page = null, $searchValue = '') {
     ];
 }
 
+    /**
+     * Création d'un nouveau département
+     * @param $nom du nouveau département
+     * @param $code du nouveau département
+     * @param $description du nouveau département
+     * @param $createdBy créateur du nouveau département
+     * @return false|Department
+     */
     public static function create($nom, $code, $description, $createdBy) {
         $stmt = DatabaseConnexion::getInstance()->prepare('INSERT INTO Departement (nom, code, description, createdBy) VALUES (:nom, :code, :description, :createdBy)');
         $stmt->execute([
@@ -133,6 +149,12 @@ public static function getAll($page = null, $searchValue = '') {
         ]);
         return self::get(DatabaseConnexion::getInstance()->lastInsertId()); 
     }
+
+    /**
+     * total des départements
+     * @param $searchValue valeur de recherche
+     * @return mixed
+     */
     public static function getTotal($searchValue = '') {
         if ($searchValue) {
             $stmt = DatabaseConnexion::getInstance()->prepare('SELECT COUNT(*) FROM Departement WHERE nom LIKE :query OR code LIKE :query');
@@ -144,11 +166,23 @@ public static function getAll($page = null, $searchValue = '') {
         return $stmt->fetchColumn();
     }
 
+    /**
+     * Suppression d'un département
+     * @param int $id du département a supprimer
+     * @return bool
+     */
     public static function delete(int $id): bool
     {
         $stmt = DatabaseConnexion::getInstance()->prepare('DELETE FROM Departement WHERE id = :id');
         return $stmt->execute(['id' => $id]);
     }
+
+    /**
+     * Mise a jours d'un département
+     * @param $id du département a modifier
+     * @param $data nouvelles données
+     * @return bool
+     */
     public static function update($id, $data) {
         $pdo = DatabaseConnexion::getInstance();
         $sql = "UPDATE Departement SET nom = :nom, code = :code, description = :description WHERE id = :id";

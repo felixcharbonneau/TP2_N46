@@ -29,10 +29,10 @@
                         <td>${student.email}</td>
                         <td>
                             <button class="open-modal edit image-button" onclick="openEditModal(${student.id}, '${student.nom}', '${student.prenom}', '${student.dateNaissance}')">
-                                <img src="Views/Images/pen.webp">
+                                <img src="views/Images/pen.webp">
                             </button>
                             <button type=\"submit\" class=\"image-button\" onclick=\"deleteStudent(${student.id})\">
-                                <img src=\"Views/Images/trash.webp\" alt=\"Icon\">
+                                <img src=\"views/Images/trash.webp\" alt=\"Icon\">
                             </button>
                         </td>`;
                     tableBody.appendChild(row);
@@ -130,19 +130,23 @@
              * @param {number} studentId - L'ID de l'étudiant à supprimer
              */
             function deleteStudent(studentId) {
+                if (!confirm("Êtes-vous sûr de vouloir supprimer cet étudiant ?")) {
+                    return; // Annule la suppression si l'utilisateur clique sur Annuler
+                }
                 fetch(`api/students/${studentId}`, {
                     method: 'DELETE'
                 })
-                .then(async response => {
-                    if (response.status === 204) {
-                        loadStudents();
-                    } else {
-                        let errorMsg = 'Erreur lors de la suppression';
-                        throw new Error(errorMsg);
-                    }
-                })
-                .catch(error => alert(error.message));
+                    .then(async response => {
+                        if (response.status === 204) {
+                            loadStudents();
+                        } else {
+                            let errorMsg = 'Erreur lors de la suppression';
+                            throw new Error(errorMsg);
+                        }
+                    })
+                    .catch(error => alert(error.message));
             }
+
             /**
              * Fonction pour mettre à jour un étudiant
              * @param {number} id - L'ID de l'étudiant à mettre à jour

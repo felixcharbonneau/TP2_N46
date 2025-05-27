@@ -19,21 +19,42 @@ class ClassesController {
             switch($_SESSION['user_role']){
                 case 'Admin':
                     $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-                    $searchValue = isset($_GET['query']) ? $_GET['query'] : '';                    
-                    $classes = \models\Classes::getAll($page, $searchValue);
+                    if ($page < 1) $page = 1;
+
+                    $searchValue = isset($_GET['query']) ? $_GET['query'] : '';
+                    $totalCount = \models\Classes::getTotal($searchValue);
+                    $perPage = 10;
+                    $maxPage = max(1, ceil($totalCount / $perPage));
+
+                    if ($page > $maxPage) {
+                        // Redirect or adjust to last available page
+                        $page = $maxPage;
+                    }
+
+                    if ($totalCount === 0) {
+                        $classes = [];
+                        $studentsByGroup = [];
+                    } else {
+                        $classes = \models\Classes::getAll($page, $searchValue);
+                        $studentsByGroup = [];
+                        if ($classes) {
+                            $groupIds = array_map(fn($class) => $class->id, $classes);
+                            $studentsByGroup = \models\Student::getStudentsInGroups($groupIds);
+                        }
+                    }
+
                     $students = \models\Student::getAll();
                     $teachers = \models\Teachers::getAll();
                     $courses = \models\Cours::getAll();
-                    if($classes){
-                        $groupIds = array_map(fn($class) => $class->id, $classes);
-                        $studentsByGroup = \models\Student::getStudentsInGroups($groupIds);
-                    }
+
                     $editToken = hash('sha256', $_SESSION['csrf_token'] . "AdminEditClassForm");
                     $deleteToken = hash('sha256', $_SESSION['csrf_token'] . "AdminDeleteClassForm");
                     $addToken = hash('sha256', $_SESSION['csrf_token'] . "AdminAddClassForm");
                     $removeToken = hash('sha256', $_SESSION['csrf_token'] . "TeacherRemoveStudentForm");
                     $addStudentToken = hash('sha256', $_SESSION['csrf_token'] . "TeacherAddStudentForm");
+
                     include_once VIEWS_PATH . 'Admin/' . 'Classes.php';
+
                     break;
                 case 'Teacher':
                     $removeToken = hash('sha256', $_SESSION['csrf_token'] . "TeacherRemoveStudentForm");

@@ -300,7 +300,7 @@ function openEditModal(classeId, classeName, classeNumber, classeDescription, co
                             ")'>                                <img src=\"views/Images/pen.webp\">
 
 <button type=\"button\" class=\"image-button\" onclick=\"openStudentsModal(" . htmlspecialchars(json_encode($class->id), ENT_QUOTES, 'UTF-8') . ")\">
-    <img src=\"Views/Images/eleve.png\" alt=\"Voir les étudiants\">
+    <img src=\"views/Images/eleve.png\" alt=\"Voir les étudiants\">
 </button>
                         <form class=\"actions\" method=\"POST\" action=\"classes/delete\" onsubmit=\"return confirmDelete();\">
                             <input type=\"hidden\" name=\"page\" value=\"" . htmlspecialchars($_GET['page']) . "\">
@@ -309,7 +309,7 @@ function openEditModal(classeId, classeName, classeNumber, classeDescription, co
                             <input type=\"hidden\" name=\"csrf_token\" value=\"" . htmlspecialchars($deleteToken) . "\">
                             <input type=\"hidden\" name=\"query\" value=\"" . htmlspecialchars($_POST['query'] ?? '') . "\">
                             <button type=\"submit\" class=\"image-button\">
-                                <img src=\"Views/Images/trash.webp\" alt=\"Icon\">
+                                <img src=\"views/Images/trash.webp\" alt=\"Icon\">
                             </button>
                         </form>
 

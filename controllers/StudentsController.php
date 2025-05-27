@@ -12,22 +12,22 @@ class StudentsController {
      * Afficher la page de connexion
      */
     public function index() {
-        if(isset($_SESSION['user_role'])) {
-            switch($_SESSION['user_role']){
+        if (isset($_SESSION['user_role'])) {
+            switch ($_SESSION['user_role']) {
                 case 'Admin':
                     require VIEWS_PATH . 'Admin/' . 'Students.php';
                     break;
                 case 'Teacher':
-                    require VIEWS_PATH . 'ErrorRights.php';
-                    break;
                 case 'Student':
+                default:
+                    \libs\Logging::log("[SECURITY] Accès interdit à la page Students par le rôle '" . $_SESSION['user_role'] . "'. IP : " . ($_SERVER['REMOTE_ADDR'] ?? 'Inconnue'));
                     require VIEWS_PATH . 'ErrorRights.php';
                     break;
-                default:
-                    require VIEWS_PATH . 'ErrorRights.php';
-        }
-        }else{
+            }
+        } else {
+            \libs\Logging::log("[SECURITY] Accès non connecté à la page Students. IP : " . ($_SERVER['REMOTE_ADDR'] ?? 'Inconnue'));
             require VIEWS_PATH . 'ErrorRights.php';
         }
     }
+
 }

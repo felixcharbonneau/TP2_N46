@@ -2,6 +2,9 @@
 namespace controllers;
 use models\Department;
 
+/**
+ * Api pour les départments
+ */
 class DepartmentsApi {
 
     public function __construct() {
@@ -11,16 +14,30 @@ class DepartmentsApi {
         header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
         header('Access-Control-Allow-Headers: Content-Type');
     }
+
+    /**
+     * Optention de tous les départements
+     */
     public function getDepartments(){
         $jwt = \libs\Security::getJwt();
         $decoded = \libs\Security::validateJwt($jwt);
         if (!$decoded || !isset($decoded['role'])) {
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'IP inconnue';
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'User-Agent inconnu';
+
+            \libs\Logging::log("Accès non autorisé : JWT invalide ou champ 'role' manquant. IP : {$ip}, User-Agent : {$userAgent}");
+
             header('HTTP/1.1 401 Unauthorized');
             return json_encode(['error' => 'Unauthorized access.']);
         }
 
         $allowedRoles = ['Admin', 'Teacher', 'Student'];
         if (!in_array($decoded['role'], $allowedRoles)) {
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'IP inconnue';
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'User-Agent inconnu';
+
+            \libs\Logging::log("Accès non autorisé : Role invalide pour requete API. IP : {$ip}, User-Agent : {$userAgent}");
+
             header('HTTP/1.1 403 Forbidden');
             return json_encode(['error' => 'Forbidden: Access denied.']);
         }
@@ -30,32 +47,61 @@ class DepartmentsApi {
         
         return json_encode($departments);
     }
+
+    /**
+     * Optention d'un seul département
+     * @param $id du département
+     */
     public function getDepartment($id){
         $jwt = \libs\Security::getJwt();
         $decoded = \libs\Security::validateJwt($jwt);
         if (!$decoded || !isset($decoded['role'])) {
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'IP inconnue';
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'User-Agent inconnu';
+
+            \libs\Logging::log("Accès non autorisé : JWT invalide ou champ 'role' manquant. IP : {$ip}, User-Agent : {$userAgent}");
+
             header('HTTP/1.1 401 Unauthorized');
             return json_encode(['error' => 'Unauthorized access.']);
         }
 
         $allowedRoles = ['Admin', 'Teacher', 'Student'];
         if (!in_array($decoded['role'], $allowedRoles)) {
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'IP inconnue';
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'User-Agent inconnu';
+
+            \libs\Logging::log("Accès non autorisé : Role invalide pour requete API. IP : {$ip}, User-Agent : {$userAgent}");
+
             header('HTTP/1.1 403 Forbidden');
             return json_encode(['error' => 'Forbidden: Access denied.']);
         }
         $department = Department::get($id);
         return json_encode($department);
     }
+
+    /**
+     * Création d'un département
+     */
     public function createDepartment(){
         $jwt = \libs\Security::getJwt();
         $decoded = \libs\Security::validateJwt($jwt);
         if (!$decoded || !isset($decoded['role'])) {
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'IP inconnue';
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'User-Agent inconnu';
+
+            \libs\Logging::log("Accès non autorisé : JWT invalide ou champ 'role' manquant. IP : {$ip}, User-Agent : {$userAgent}");
+
             header('HTTP/1.1 401 Unauthorized');
             return json_encode(['error' => 'Unauthorized access.']);
         }
 
         $allowedRoles = ['Admin', 'Teacher', 'Student'];
         if (!in_array($decoded['role'], $allowedRoles)) {
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'IP inconnue';
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'User-Agent inconnu';
+
+            \libs\Logging::log("Accès non autorisé : Role invalide pour requete API. IP : {$ip}, User-Agent : {$userAgent}");
+
             header('HTTP/1.1 403 Forbidden');
             return json_encode(['error' => 'Forbidden: Access denied.']);
         }
@@ -84,20 +130,33 @@ class DepartmentsApi {
             return '';
         }
     }
+
+    /**
+     * Mise a jours d'un département
+     * @param $id du département a mettre a jours
+     */
     public function updateDepartment($id){
-        /*
         $jwt = \libs\Security::getJwt();
         $decoded = \libs\Security::validateJwt($jwt);
         if (!$decoded || !isset($decoded['role'])) {
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'IP inconnue';
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'User-Agent inconnu';
+
+            \libs\Logging::log("Accès non autorisé : JWT invalide ou champ 'role' manquant. IP : {$ip}, User-Agent : {$userAgent}");
+
             header('HTTP/1.1 401 Unauthorized');
             return json_encode(['error' => 'Unauthorized access.']);
         }
         $allowedRoles = ['Admin', 'Teacher', 'Student'];
         if (!in_array($decoded['role'], $allowedRoles)) {
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'IP inconnue';
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'User-Agent inconnu';
+
+            \libs\Logging::log("Accès non autorisé : Role invalide pour requete API. IP : {$ip}, User-Agent : {$userAgent}");
+
             header('HTTP/1.1 403 Forbidden');
             return json_encode(['error' => 'Forbidden: Access denied.']);
         }
-        */
         $data = json_decode(file_get_contents('php://input'), true);
         if (!isset($data['nom']) || !isset($data['code']) || !isset($data['description'])) {
             header('HTTP/1.1 400 Bad Request');
@@ -116,16 +175,31 @@ class DepartmentsApi {
             return '';
         }
     }
+
+    /**
+     * Suppression d'un departement
+     * @param $id du departement a supprimer
+     */
     public function deleteDepartment($id){
         $jwt = \libs\Security::getJwt();
         $decoded = \libs\Security::validateJwt($jwt);
         if (!$decoded || !isset($decoded['role'])) {
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'IP inconnue';
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'User-Agent inconnu';
+
+            \libs\Logging::log("Accès non autorisé : JWT invalide ou champ 'role' manquant. IP : {$ip}, User-Agent : {$userAgent}");
+
             header('HTTP/1.1 401 Unauthorized');
             return json_encode(['error' => 'Unauthorized access.']);
         }
 
         $allowedRoles = ['Admin', 'Teacher', 'Student'];
         if (!in_array($decoded['role'], $allowedRoles)) {
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'IP inconnue';
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'User-Agent inconnu';
+
+            \libs\Logging::log("Accès non autorisé : Role invalide pour requete API. IP : {$ip}, User-Agent : {$userAgent}");
+
             header('HTTP/1.1 403 Forbidden');
             return json_encode(['error' => 'Forbidden: Access denied.']);
         }
@@ -137,14 +211,5 @@ class DepartmentsApi {
             header('HTTP/1.1 204 No Content');
             return '';
         }
-    }
-    public function rechercher(){
-        $query = isset($_GET['query']) ? $_GET['query'] : '';
-        if($query){
-            $departments = Department::getAll($query);
-        }else{
-            $departments = Department::getAll();
-        }
-        return json_encode($departments);
     }
 }

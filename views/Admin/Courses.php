@@ -208,7 +208,7 @@
                                 htmlspecialchars(json_encode($cours->numero), ENT_QUOTES, 'UTF-8') . ", " . 
                                 htmlspecialchars(json_encode($cours->description), ENT_QUOTES, 'UTF-8') . ", " .
                                 htmlspecialchars(json_encode($cours->idDepartement), ENT_QUOTES, 'UTF-8') . ")'>
-                                <img src=\"Views/Images/pen.webp\">
+                                <img src=\"views/Images/pen.webp\">
                             </button>
                         <form class=\"actions\" method=\"POST\" action=\"courses/delete\" onsubmit=\"return confirmDelete();\">
                             <input type=\"hidden\" name=\"page\" value=\"" . htmlspecialchars($_GET['page']) . "\">
@@ -216,7 +216,7 @@
                             <input type=\"hidden\" name=\"csrf_token\" value=\"" . htmlspecialchars($deleteToken) . "\">
                             <input type=\"hidden\" name=\"query\" value=\"" . htmlspecialchars($_POST['query'] ?? '') . "\">
                             <button type=\"submit\" class=\"image-button\">
-                                <img src=\"Views/Images/trash.webp\" alt=\"Icon\">
+                                <img src=\"views/Images/trash.webp\" alt=\"Icon\">
                             </button>
                         </form>
                     </td>";

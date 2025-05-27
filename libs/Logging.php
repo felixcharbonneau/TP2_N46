@@ -2,7 +2,16 @@
 namespace libs;
 use models\DatabaseConnexion;
 
+/**
+ * Classe permettant d'écrire des log dans la bd
+ */
 class Logging {
+    /**
+     * Ecriture du fichier de journaux
+     * @param $message a écrire
+     * @param $ip de la personne ayant commis l'acion
+     * @return void
+     */
     public static function log($message, $ip = null) {
         if ($ip === null) {
             $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';

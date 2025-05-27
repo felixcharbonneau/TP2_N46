@@ -361,6 +361,12 @@ public static function getAll($page = null, $searchValue = '')
     
         return (string)$randomNumber;
     }
+
+    /**
+     * Nombre total d'étudiants
+     * @param $searchValue valeur de recherche
+     * @return mixed
+     */
     public static function getTotal($searchValue = '') {
         if(!$searchValue){
             $stmt = DatabaseConnexion::getInstance()->prepare('SELECT COUNT(*) FROM Etudiant');

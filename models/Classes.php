@@ -164,6 +164,12 @@ class Classes{
         ]);
         return $stmt->rowCount() > 0;
     }
+
+    /**
+     * obtenir tout les groupes auquels un Étudiant fait partie
+     * @param $user_id utilisateur
+     * @return array|false
+     */
     public static function getAllFromStudent($user_id)
     {
         $stmt = DatabaseConnexion::getInstance()->prepare('
@@ -192,6 +198,59 @@ class Classes{
             return $classes;
         }
         return false;
+    }
+    /**
+     * obtenir tout les groupes auquels un Enseignant fait partie
+     * @param $user_id utilisateur
+     * @return array|false
+     */
+    public static function getAllFromTeacher($teacherID){
+        $stmt = DatabaseConnexion::getInstance()->prepare('SELECT id,numero,nom,description,idCours,idEnseignant,createdBy,modifiedBy
+        FROM Groupe WHERE idEnseignant = :teacherId');
+        $stmt->bindValue(':teacherId', $teacherID, \PDO::PARAM_INT);
+        $stmt->execute();
+        if ($stmt->rowCount() > 0) {
+            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $classes[] = new Classes(
+                    $row['id'],
+                    $row['numero'],
+                    $row['nom'],
+                    $row['description'],
+                    $row['idCours'],
+                    $row['idEnseignant'],
+                    $row['createdBy'],
+                    $row['modifiedBy']
+                );
+            }
+            return $classes;
+        }
+        return false;
+    }
+
+    /**
+     * Nombre total d'entrées
+     * @param $searchValue valeur de la recherche
+     * @return void
+     */
+    public static function getTotal($searchValue = null)
+    {
+        $pdo = DatabaseConnexion::getInstance();
+
+        if ($searchValue) {
+            $stmt = $pdo->prepare("
+            SELECT COUNT(*) 
+            FROM Groupe
+            WHERE nom LIKE :search 
+               OR description LIKE :search
+        ");
+            $stmt->execute([
+                ':search' => '%' . $searchValue . '%'
+            ]);
+        } else {
+            $stmt = $pdo->query("SELECT COUNT(*) FROM Groupe");
+        }
+
+        return $stmt->fetchColumn();
     }
 
 

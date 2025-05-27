@@ -1,47 +1,96 @@
 <?php
 use PHPUnit\Framework\TestCase;
 
-//executer avec:     docker exec -it tp2_n46-php-1 ./vendor/bin/phpunit tests/connexionTest.php (depend du nom du docker)
-//Je les run sur docker parce que sa prend une connexion a la bd absolument pour tester mon modele
-//Puisque toutes les méthodes performent des lectures/écritures
+// ./vendor/bin/phpunit tests/connexionTest.php
 class connexionTest extends TestCase
 {
     protected $pdo;
 
     protected function setUp(): void
     {
+        if (!defined('CONFIG_PATH')) {
+            define('CONFIG_PATH', dirname(__DIR__) . '/config/');
+        }
+
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        if (!defined('ROOT_PATH')) {
-            define('ROOT_PATH', dirname(__DIR__) . '/');
-        }
-        if (!defined('APP_PATH')) {
-            define('APP_PATH', ROOT_PATH . 'app/');
-        }
-        if (!defined('CONFIG_PATH')) {
-            define('CONFIG_PATH', ROOT_PATH . 'config/');
-        }
-        if (!defined('CONTROLLERS_PATH')) {
-            define('CONTROLLERS_PATH', ROOT_PATH . 'controllers/');
-        }
-        if (!defined('MODELS_PATH')) {
-            define('MODELS_PATH', ROOT_PATH . 'models/');
-        }
-        if (!defined('VIEWS_PATH')) {
-            define('VIEWS_PATH', ROOT_PATH . 'views/');
-        }
-        if (!defined('ROUTES_PATH')) {
-            define('ROUTES_PATH', ROOT_PATH . 'routes/');
-        }
-
-        $this->pdo = \models\DatabaseConnexion::getInstance();
     }
-    public function testPasswordVerify(){
 
+    /**
+     * test vérifiant la génération de token aléatoire
+     * @return void
+     * @throws \Random\RandomException
+     */
+    public function testGenerateTokenReturnsCorrectLength()
+    {
+        $length = 16;
+        $token = libs\Security::generateToken($length);
+        $this->assertIsString($token);
+        $this->assertEquals($length * 2, strlen($token));
+    }
 
+    /**
+     * Tests sur les méthodes d'encodage/décodage en base 64
+     */
+    public function testBase64UrlEncodeDecodeRoundTrip()
+    {
+        $original = "Hello world! 1234";
+        $encoded = libs\Security::base64UrlEncode($original);
+        $decoded = libs\Security::base64UrlDecode($encoded);
+        $this->assertEquals($original, $decoded);
 
+        $this->assertStringNotContainsString('+', $encoded);
+        $this->assertStringNotContainsString('/', $encoded);
+        $this->assertStringNotContainsString('=', $encoded);
+    }
 
+    /**
+     * Test sur la génération de Json Web Token
+     */
+    public function testGenerateAndValidateJWT()
+    {
+        $data = ['email' => 'test@example.com'];
+        $role = 'Admin';
+
+        $jwt = libs\Security::generateJWT($data, $role);
+        $this->assertIsString($jwt);
+
+        $payload = libs\Security::validateJWT($jwt);
+        $this->assertIsArray($payload);
+        $this->assertEquals($data['email'], $payload['email']);
+        $this->assertEquals($role, $payload['role']);
+    }
+
+    /**
+     * Vérifie que les méthodes de JWT retourne false pour un token invalide
+     */
+    public function testValidateJWTReturnsFalseForInvalidToken()
+    {
+        $invalidJwt = "abc.def.ghi";
+        $this->assertFalse(libs\Security::validateJWT($invalidJwt));
+
+        $emptyJwt = "";
+        $this->assertFalse(libs\Security::validateJWT($emptyJwt));
+    }
+
+    /**
+     * Vérification du fonctionnement des méthodes de génération de token CSRF
+     */
+    public function testVerifyCSRFToken()
+    {
+        $constant = "testFormConstant";
+        $tokenRaw = libs\Security::generateToken();
+        $_SESSION['csrf_token'] = $tokenRaw;
+
+        $correctToken = hash('sha256', $tokenRaw . $constant);
+        $this->assertTrue(libs\Security::verifyCSRFToken($correctToken, $constant));
+
+        $wrongToken = 'invalidtoken';
+        $this->assertFalse(libs\Security::verifyCSRFToken($wrongToken, $constant));
+
+        unset($_SESSION['csrf_token']);
+        $this->assertFalse(libs\Security::verifyCSRFToken($correctToken, $constant));
     }
 
 
