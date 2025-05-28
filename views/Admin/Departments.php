@@ -93,10 +93,10 @@
                             <td>${department.code}</td>
                             <td>
                                 <button class="open-modal edit image-button" onclick="openEditModal(${department.id}, '${department.nom}', '${department.code}')">
-                                    <img src="views/images/pen.webp" alt="Modifier" class="edit-icon">
+                                    <img src="views/Images/pen.webp" alt="Modifier" class="edit-icon">
                                 </button>
                                 <button class=\"image-button\" onclick="deleteDepartment(${department.id})">
-                                    <img src="views/images/trash.webp" alt="Supprimer" class="delete-icon">
+                                    <img src="views/Images/trash.webp" alt="Supprimer" class="delete-icon">
                                 </button>
                             </td>
                         `;

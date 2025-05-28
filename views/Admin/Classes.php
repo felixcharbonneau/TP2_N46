@@ -9,34 +9,10 @@
         include_once VIEWS_PATH . 'ErrorMessage.php';
     }
     include VIEWS_PATH . 'Navbar/AdminNavbar.php';
-?>
-
+    ?>
 
 <html>
     <head>
-        <script>
-            const studentsData = <?php
-                $groupStudentMap = [];
-
-                if (!empty($studentsByGroup)) {
-                    foreach ($studentsByGroup as $groupId => $students) {
-                        $groupStudentMap[$groupId] = array_map(function($student) {
-                            return [
-                                'prenom' => $student['prenom'],
-                                'nom' => $student['nom'],
-                                'email' => $student['email'],
-                                'id' => $student['id']
-                            ];
-                        }, $students);
-                    }
-                }
-
-                echo json_encode($groupStudentMap, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
-                ?>;
-
-
-        </script>
-
     <link rel="stylesheet" href="Views/General.css">
     <script>
         /**
@@ -55,9 +31,13 @@
             const addStudentGroupId = document.getElementById('addStudentGroupId');
 
             modal.style.display = 'flex';
-            const students = studentsData[groupId]; // Assuming studentsData is globally available.
+            const allStudentsByGroup = <?php echo json_encode($studentsByGroup); ?>;
 
-            addStudentGroupId.value = groupId; // Set group ID for the add student form.
+            // Filter students for the specific group
+            const studentsForGroup = allStudentsByGroup[groupId] || [];
+            console.log('Students for group', groupId, ':', studentsForGroup);
+
+            addStudentGroupId.value = groupId;
 
             // Add event listener to open the add student modal when "+" button is clicked
             addButton.onclick = function () {
@@ -65,9 +45,9 @@
             };
 
             // Show the current list of students in the main modal
-            if (students && students.length > 0) {
+            if (studentsForGroup && studentsForGroup.length > 0) {
                 list.innerHTML = ''; // Clear current list
-                students.forEach((student) => {
+                studentsForGroup.forEach((student) => {
                     const studentDiv = document.createElement('div');
                     studentDiv.style.display = 'flex';
                     studentDiv.style.justifyContent = 'space-between';
@@ -100,19 +80,14 @@
                 list.innerHTML = '<p>Aucun étudiant trouvé dans ce groupe.</p>';
             }
 
-            // Close the main modal logic
             document.getElementById('closeStudentsModal').onclick = () => modal.style.display = 'none';
             modal.onclick = e => {
                 if (e.target === modal) modal.style.display = 'none';
             };
 
-            // Function to open the Add Student Modal
             function openAddStudentModal(groupId) {
                 addStudentModal.style.display = 'flex';
 
-
-
-                // Close the Add Student Modal logic
                 document.getElementById('closeAddStudentModal').onclick = () => addStudentModal.style.display = 'none';
                 addStudentModal.onclick = e => {
                     if (e.target === addStudentModal) addStudentModal.style.display = 'none';
@@ -120,7 +95,6 @@
             }
         }
 
-        // Function to remove a student
         function removeStudent(studentId, groupId) {
             const form = document.createElement('form');
             form.method = 'POST';
@@ -267,7 +241,6 @@ function openEditModal(classeId, classeName, classeNumber, classeDescription, co
 
 
             <form method="GET" action="classes" style="display:inline;">
-                <input type="hidden" name="action" value="changementPage">
                 <input type="hidden" name="type" value="Groupe">
                 <input type="submit" class ="reset" value="Supprimer la recherche">
             </form>
@@ -299,12 +272,11 @@ function openEditModal(classeId, classeName, classeNumber, classeDescription, co
                                 htmlspecialchars(json_encode($class->enseignantID), ENT_QUOTES, 'UTF-8') .
                             ")'>                                <img src=\"views/Images/pen.webp\">
 
-<button type=\"button\" class=\"image-button\" onclick=\"openStudentsModal(" . htmlspecialchars(json_encode($class->id), ENT_QUOTES, 'UTF-8') . ")\">
-    <img src=\"views/Images/eleve.png\" alt=\"Voir les étudiants\">
-</button>
+                        <button type=\"button\" class=\"image-button\" onclick=\"openStudentsModal(" . htmlspecialchars(json_encode($class->id), ENT_QUOTES, 'UTF-8') . ")\">
+                            <img src=\"views/Images/eleve.png\" alt=\"Voir les étudiants\">
+                        </button>
                         <form class=\"actions\" method=\"POST\" action=\"classes/delete\" onsubmit=\"return confirmDelete();\">
                             <input type=\"hidden\" name=\"page\" value=\"" . htmlspecialchars($_GET['page']) . "\">
-                            <input type=\"hidden\" name=\"query\" value=\"" . (isset($_GET['query']) ? htmlspecialchars($_GET['query']) : 'delete') . "\">
                             <input type=\"hidden\" name=\"id\" value=\"" . htmlspecialchars($class->id) . "\">
                             <input type=\"hidden\" name=\"csrf_token\" value=\"" . htmlspecialchars($deleteToken) . "\">
                             <input type=\"hidden\" name=\"query\" value=\"" . htmlspecialchars($_POST['query'] ?? '') . "\">
@@ -350,8 +322,8 @@ function openEditModal(classeId, classeName, classeNumber, classeDescription, co
                         <label for="addStudentId">Sélectionner un étudiant:</label>
                         <select name="student_id" id="addStudentId" required>
                             <?php foreach ($students as $student): ?>
-                                <option value="<?php echo $student['id']; ?>">
-                                    <?php echo $student['prenom'] . ' ' . $student['nom']; ?>
+                                <option value="<?php echo $student->id; ?>">
+                                    <?php echo $student->prenom . ' ' . $student->nom; ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

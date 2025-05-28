@@ -22,26 +22,16 @@ class ClassesController {
                     if ($page < 1) $page = 1;
 
                     $searchValue = isset($_GET['query']) ? $_GET['query'] : '';
-                    $totalCount = \models\Classes::getTotal($searchValue);
-                    $perPage = 10;
-                    $maxPage = max(1, ceil($totalCount / $perPage));
 
-                    if ($page > $maxPage) {
-                        // Redirect or adjust to last available page
-                        $page = $maxPage;
-                    }
-
-                    if ($totalCount === 0) {
-                        $classes = [];
-                        $studentsByGroup = [];
-                    } else {
-                        $classes = \models\Classes::getAll($page, $searchValue);
-                        $studentsByGroup = [];
-                        if ($classes) {
-                            $groupIds = array_map(fn($class) => $class->id, $classes);
+                    $classes = \models\Classes::getAll($page, $searchValue);
+                    $studentsByGroup = [];
+                    if ($classes) {
+                        $groupIds = array_map(fn($class) => $class->id, $classes);
+                        if (!empty($groupIds)) {
                             $studentsByGroup = \models\Student::getStudentsInGroups($groupIds);
                         }
                     }
+
 
                     $students = \models\Student::getAll();
                     $teachers = \models\Teachers::getAll();
